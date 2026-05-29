@@ -5,51 +5,61 @@ import { Instruction } from "../../components/instruction/Instruction.jsx";
 import { SimulationContext } from "../../context/SimulationContext.jsx";
 import { LeftPanel } from "../../components/leftPanel/LeftPanel.jsx";
 import { RightPanel } from "../../components/rightPanel/RightPanel.jsx";
+import { GuidedModal } from "../../components/guidedModal/GuidedModal.jsx";
 
 export const Home = () => {
-  const { showInstruction, setShowInstruction, buttonRef } =
+  const { showInstruction, setShowInstruction, buttonRef, instructionPanelRef } =
     useContext(SimulationContext);
   const instructionRef = useRef(null);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (
-        instructionRef.current &&
-        !instructionRef.current.contains(event.target)
-      ) {
+      const panel = instructionPanelRef.current || instructionRef.current;
+      if (panel && !panel.contains(event.target)) {
         if (buttonRef.current && !buttonRef.current.contains(event.target)) {
-          setShowInstruction(false); // close the panel
+          setShowInstruction(false);
         }
       }
     };
     if (showInstruction) {
       document.addEventListener("mousedown", handleClickOutside);
     }
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [showInstruction, setShowInstruction, buttonRef]);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showInstruction, setShowInstruction, buttonRef, instructionPanelRef]);
 
   return (
     <div className={styles.grandContainer}>
       <div className={styles.parentContainer}>
-        <div className={styles.topContainer}>
+        <header className={styles.topContainer}>
           <TopPanel />
+        </header>
+
+        <div className={styles.dashboardLayout}>
+          <aside className={styles.sidebar}>
+            <RightPanel />
+          </aside>
+
+          <main className={styles.mainContent}>
+            {showInstruction && (
+              <div
+                id="instructionPanel"
+                ref={(el) => {
+                  instructionRef.current = el;
+                  if (instructionPanelRef) instructionPanelRef.current = el;
+                }}
+                className={styles.instructionContainer}
+              >
+                <Instruction />
+              </div>
+            )}
+            <LeftPanel />
+          </main>
         </div>
-        {/* Middle Container:- simulation area */}
-        <div className={styles.middleContainer}>
-          {showInstruction && (
-            <div ref={instructionRef} className={styles.instructionContainer}>
-              <Instruction />
-            </div>
-          )}
-          <LeftPanel className={styles.leftPanelContainer} />
-          <RightPanel className={styles.rightPanelContainer} />
-        </div>
-        <div className={styles.footerContainer}>
+
+        <footer className={styles.footerContainer}>
           ©Copyright 2025 Virtual Labs, IIT Roorkee
-        </div>
+        </footer>
+        <GuidedModal />
       </div>
     </div>
   );

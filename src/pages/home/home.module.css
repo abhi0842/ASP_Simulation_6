@@ -1,91 +1,144 @@
 .grandContainer {
-    width: 100%;
-    height: 100%;
-    background-color: #ffffff;
-    overflow-x: auto;
-    overflow-y: auto;
-    box-sizing: border-box;
-    border-radius: 0px 0px 10px 11px;
+  width: 100%;
+  min-height: 100vh;
+  background-color: #f1f5f9;
+  box-sizing: border-box;
 }
 
 .parentContainer {
-    position: relative;
-    background-color: transparent;
-    box-sizing: border-box;
-    width: 80%;
-    margin: 0 auto;
-    box-shadow: 0px 0px 10px #00000015;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    flex-direction: column;
+  position: relative;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 1600px;
+  margin: 0 auto;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: #fcfcfc;
+  box-shadow: 0 0 24px rgba(15, 23, 42, 0.06);
 }
 
 .topContainer {
-    /* position: absolute; */
-    background-color: #b3ebf1;
-    border: 1px solid #00000015;
-    overflow: hidden;
-    margin-top: 0%;
-    width: 100%;
-    background-color: #1a5376;
-    /* max-height: 60px; */
+  width: 100%;
+  flex-shrink: 0;
+  background-color: #1a5376;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  overflow: hidden;
 }
 
-.middleContainer {
-    position: relative;
-    background-color: #fcfcf9;
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: start;
-    flex-direction: row-reverse;
+.dashboardLayout {
+  display: grid;
+  grid-template-columns: minmax(300px, 360px) minmax(0, 1fr);
+  gap: 24px;
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  padding: 20px;
+  box-sizing: border-box;
+  align-items: start;
+}
+
+.sidebar {
+  position: sticky;
+  top: 20px;
+  align-self: start;
+  height: fit-content;
+  width: 100%;
+  min-width: 0;
+}
+
+.mainContent {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+  min-width: 0;
+  position: relative;
 }
 
 .instructionContainer {
-    position: absolute;
-    top: -1px;
-    right: 0px;
-    width: 500px;
-    max-height: 678px;
-    overflow: auto;
-    padding-bottom: 1px;
-    background-color: #1a5376;
-    border-radius: 6px;
-    z-index: 1000;
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 50;
+  width: min(100%, 460px);
+  max-height: min(78vh, 640px);
+  overflow: auto;
+  padding: 0;
+  background-color: transparent;
+  border-radius: 12px;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.15);
 }
 
 .footerContainer {
-    /* position: absolute;
-  bottom: 0; */
-    height: 35px;
-    width: 100%;
-    background-color: #1a5376;
-    color: white;
-    padding: 1rem;
-    box-sizing: border-box;
-    text-align: center;
-    border: 1px solid #00000015;
-    padding-top: 6px;
-    border-radius: 0px 0px 10px 10px;
+  flex-shrink: 0;
+  min-height: 44px;
+  width: 100%;
+  box-sizing: border-box;
+  background-color: #1a5376;
+  color: #f8fafc;
+  padding: 10px 16px;
+  text-align: center;
+  font-size: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 @media (max-width: 1200px) {
-    .parentContainer {
-        width: 95%;
-    }
+  .dashboardLayout {
+    gap: 20px;
+    padding: 16px;
+  }
+
+}
+
+@media (max-width: 1024px) {
+  .dashboardLayout {
+    grid-template-columns: 1fr;
+    gap: 20px;
+    padding: 14px;
+  }
+
+  .sidebar {
+    position: relative;
+    top: auto;
+    order: -1;
+  }
+
+  .instructionContainer {
+    width: min(100%, 420px);
+    max-height: min(65vh, 520px);
+  }
 }
 
 @media (max-width: 768px) {
-    .parentContainer {
-        width: 100%;
-    }
-    .instructionContainer {
-        right: 1px;
-        width: 370px;
-        max-height: 500px;
-    }
-    .middleContainer {
-        flex-direction: column-reverse;
-    }
+  .grandContainer {
+    background-color: #fcfcfc;
+  }
+
+  .parentContainer {
+    box-shadow: none;
+  }
+
+  .dashboardLayout {
+    padding: 12px;
+    gap: 16px;
+  }
+
+  .instructionContainer {
+    width: calc(100% - 8px);
+    right: 4px;
+    max-height: 55vh;
+  }
+
+  .footerContainer {
+    font-size: 12px;
+    padding: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboardLayout {
+    padding: 10px;
+    gap: 12px;
+  }
 }

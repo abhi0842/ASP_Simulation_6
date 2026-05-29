@@ -1,44 +1,50 @@
 .leftPanelContainer {
-    width: 66.66%;
-    height: 100%;
-    background-color: #FCFCF9;
-    /* border-right: 2px solid #000000da; */
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  background-color: transparent;
 }
 
-h3 {
-    font-size: 1.2rem;
-    font-weight: 600;
-    margin-bottom: 5px;
-    color: rgb(0, 0, 0);
+.mainStack {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+  min-width: 0;
+  align-items: stretch;
 }
 
-.container {
-    padding: 0 10px;
-    /* border-right: 1px solid #868585da; */
+.contentGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr));
+  gap: 24px;
+  width: 100%;
+  min-width: 0;
+  align-items: stretch;
 }
 
-.graphContainer {
-    margin-bottom: 20px;
-    /* height: 500px; */
+.chartSection {
+  width: 100%;
+  min-width: 0;
 }
-
-.psdContainer {
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    align-items: center;
-    gap: 10px;
-}
-
 
 @media (max-width: 768px) {
-    .leftPanelContainer {
-        width: 100%;
-        height: 100%;
-    }
-        .psdContainer {
-        flex-direction: column;
-        gap:-10px;
-        
-    }
+  .mainStack {
+    gap: 16px;
+  }
+
+  .contentGrid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .mainStack {
+    gap: 14px;
+  }
+
+  .contentGrid {
+    gap: 14px;
+  }
 }

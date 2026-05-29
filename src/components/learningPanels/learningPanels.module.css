@@ -1,0 +1,24 @@
+.panelWrapper { margin: 12px 0; border-radius: 10px; overflow: hidden; border: 1px solid #d0e8ec; }
+.panelToggle { width:100%; padding:12px 16px; background:#1D7480; color:#fff; border:none; cursor:pointer; font-size:14px; font-weight:600; text-align:left; display:flex; justify-content:space-between; }
+.panelToggle:hover { background:#155e68; }
+.panelContent { background:#fafafa; padding:14px; }
+.panelSubtitle { font-size:12px; color:#666; margin-bottom:12px; }
+
+.mistakeCard { border:1px solid #e0e0e0; border-radius:8px; margin-bottom:10px; overflow:hidden; background:#fff; }
+.cardHeader { width:100%; padding:10px 14px; background:#fff; border:none; cursor:pointer; font-size:13px; font-weight:600; display:flex; justify-content:space-between; color:#333; }
+.cardHeader:hover { background:#f5f5f5; }
+.chevron { font-size:11px; }
+.cardBody { padding:10px 14px; border-top:1px solid #eee; display:flex; flex-direction:column; gap:8px; }
+.mistakeRow { border-left:4px solid #e63946; padding:6px 10px; background:#fff5f5; border-radius:4px; font-size:12px; }
+.effectRow { border-left:4px solid #f4a261; padding:6px 10px; background:#fff8f0; border-radius:4px; font-size:12px; }
+.fixRow { border-left:4px solid #2dc653; padding:6px 10px; background:#f0fff4; border-radius:4px; font-size:12px; }
+.redBadge,.orangeBadge,.greenBadge { font-weight:700; margin-right:6px; }
+.redBadge { color:#e63946; } .orangeBadge { color:#f4a261; } .greenBadge { color:#2dc653; }
+
+.tabRow { display:flex; gap:8px; margin-bottom:14px; }
+.tabBtn { padding:6px 16px; border:1px solid #1D7480; background:#fff; color:#1D7480; border-radius:6px; cursor:pointer; font-size:12px; }
+.tabActive { padding:6px 16px; border:1px solid #1D7480; background:#1D7480; color:#fff; border-radius:6px; cursor:pointer; font-size:12px; }
+
+.spinner { display:flex; flex-direction:column; align-items:center; gap:10px; padding:20px; color:#888; font-size:13px; }
+.spinnerInner { width:28px; height:28px; border:3px solid #e0e0e0; border-top-color:#1D7480; border-radius:50%; animation:spin 0.8s linear infinite; }
+@keyframes spin { to { transform:rotate(360deg); } }

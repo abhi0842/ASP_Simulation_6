@@ -1,44 +1,73 @@
-import React from "react";
+import React, { useContext } from "react";
 import styles from "./instruction.module.css";
+import { SimulationContext } from "../../context/SimulationContext.jsx";
 
 export const Instruction = () => {
+  const { algorithmType } = useContext(SimulationContext);
+  const isAR = algorithmType === "AR Process";
+
   return (
     <div className={styles.box}>
       <div className={styles.container}>
         <div className={styles.card}>
           <h1>INSTRUCTIONS</h1>
           <p style={{ fontSize: "13px", color: "#555" }}>
-            Follow these steps to perform the simulation.
+            Mode: <strong>{algorithmType}</strong>
           </p>
         </div>
         <div className={styles.card}>
           <p>
-            <span>STEP 1: Signal Setup</span><br />
-            Select an <b>ECG Dataset</b> from the dropdown menu (e.g., ecg100). This provides the raw signal for the simulation.
+            <span>STEP 1: Signal Setup</span>
+            <br />
+            Select an <b>ECG Dataset</b> from the dropdown menu or upload your own CSV/TXT file.
+            Use the <b>Duration</b> slider to limit the length of the data being analyzed, then click{" "}
+            <b>&quot;Generate ECG Signal&quot;</b> to plot the raw signal.
           </p>
         </div>
         <div className={styles.card}>
           <p>
-            <span>STEP 2: Adjust Parameters</span><br />
-            Use the <b>Duration</b> slider to choose how many seconds of data you want to analyze. Then, click the <b>"Generate ECG Signal"</b> button to load and plot the original unfiltered signal.
+            <span>STEP 2: Add Noise (optional)</span>
+            <br />
+            In the <b>Add Noise</b> section, select <b>Baseline Wander</b>, <b>Powerline (50 Hz)</b>,
+            and/or <b>EMG Noise</b>. You must generate the ECG first. Click{" "}
+            <b>&quot;Add Noise to Signal&quot;</b> to plot the contaminated ECG in <b>red</b> below the
+            clean trace. Unchecking all noise types removes the noisy plot.
           </p>
         </div>
         <div className={styles.card}>
           <p>
-            <span>STEP 3: Choose Algorithm</span><br />
-            In the <b>Algorithm Setup</b> section, choose either the <b>AR Process (LMS)</b> or the <b>MVDR Beamformer</b> from the dropdown menu.
+            <span>STEP 3: Select Algorithm</span>
+            <br />
+            Under <b>Algorithm Setup</b>, choose <b>LMS – AR Process</b> (ECG prediction) or{" "}
+            <b>MVDR Beamformer</b> (ECG denoising).
           </p>
         </div>
         <div className={styles.card}>
           <p>
-            <span>STEP 4: Configure Algorithm</span><br />
-            Adjust the relevant parameters for your chosen algorithm using the sliders (e.g., Number of Samples, Initial values, and Step size for AR; Number of antennas, DOA angles, SNR, and snapshots for MVDR).
+            <span>STEP 4: Configure Parameters</span>
+            <br />
+            {isAR ? (
+              <>
+                Adjust <b>AR Order (P)</b>, <b>Step Size (μ)</b>, and <b>Monte Carlo Runs</b> to control
+                prediction depth, convergence speed, and MSE averaging.
+              </>
+            ) : (
+              <>
+                Adjust <b>Array Elements (M)</b>, <b>Snapshots (K)</b>, <b>Signal/Interference DOA</b>,
+                <b> SNR/INR</b>, and <b>Monte Carlo Runs</b> to shape the beampattern and denoising
+                performance.
+              </>
+            )}
           </p>
         </div>
         <div className={styles.card}>
           <p>
-            <span>STEP 5: Run and Observe</span><br />
-            Click the <b>"Apply Algorithm"</b> button to execute the simulation. Once processing is complete, carefully observe the resulting plots to analyze the algorithm's performance (e.g., MSE and Weight Convergence, or the Spatial Power Spectrum).
+            <span>STEP 5: Run and Observe</span>
+            <br />
+            Click <b>&quot;Apply Algorithm&quot;</b> to execute the simulation. Observe the output
+            graphs — ECG comparison, MSE learning curve, coefficient convergence (AR), or beampattern
+            (MVDR). Use <b>&quot;Compute PSD&quot;</b> to compare power spectra of the noisy and
+            processed signals.
           </p>
         </div>
       </div>

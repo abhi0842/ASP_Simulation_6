@@ -1,6 +1,9 @@
-import React, { useContext } from 'react';
-import { SimulationContext } from '../../context/SimulationContext';
-import { Line } from 'react-chartjs-2';
+import { useContext } from "react";
+import { SimulationContext } from "../../context/SimulationContext";
+import { useCompareRuns } from "../../context/CompareRunsContext";
+import { InteractiveTutorChart } from "./InteractiveTutorChart.jsx";
+import { CompareRunsChart } from "./CompareRunsChart.jsx";
+import graphStyles from "./exp3aGraph.module.css";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -9,8 +12,9 @@ import {
   LineElement,
   Title,
   Tooltip,
-  Legend
-} from 'chart.js';
+  Legend,
+  Filler,
+} from "chart.js";
 
 ChartJS.register(
   CategoryScale,
@@ -19,107 +23,291 @@ ChartJS.register(
   LineElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
+  Filler
+);
+
+const lineOpts = (titleText, xLabel, yLabel, extra = {}) => ({
+  responsive: true,
+  maintainAspectRatio: false,
+  animation: false,
+  plugins: {
+    legend: { display: true, position: "top", labels: { font: { size: 11 } } },
+    title: { display: true, text: titleText, font: { size: 13, weight: "bold" }, color: "#1d7480" },
+  },
+  scales: {
+    x: {
+      title: { display: true, text: xLabel, font: { size: 12, weight: "bold" } },
+      ticks: { maxTicksLimit: 10 },
+    },
+    y: {
+      title: { display: true, text: yLabel, font: { size: 12, weight: "bold" } },
+    },
+    ...extra,
+  },
+});
+
+/** Max samples shown on ECG comparison charts (keeps x-axis readable). */
+const ECG_CHART_MAX_SAMPLES = 500;
+
+const Badge = ({ label, value }) => (
+  <span className={graphStyles.badge}>
+    <strong>{label}:</strong> {value}
+  </span>
 );
 
 export const Exp3aGraph = () => {
   const { algoResults } = useContext(SimulationContext);
-
+  const {
+    lmsArCompare,
+    mvdrCompare,
+    pinLmsRun,
+    clearLmsRuns,
+    pinMvdrRun,
+    clearMvdrRuns,
+  } = useCompareRuns();
   if (!algoResults) return null;
 
   if (algoResults.type === "AR Process") {
-    const data = algoResults.data;
-    
-    const mseData = {
-      labels: data.iterations,
+    const d = algoResults.data;
+    const params = { algorithm: "LMS-AR", mu: d.mu, order: d.P };
+
+    const originalEcgChart = {
+      labels: d.original.map((p) => p.x),
       datasets: [
         {
-          label: 'Mean Square Error',
-          data: data.mse,
-          borderColor: 'red',
-          borderWidth: 1,
-          pointRadius: 0
-        }
-      ]
+          label: "Original ECG",
+          data: d.original.map((p) => p.y),
+          borderColor: "#0078d4",
+          borderWidth: 1.2,
+          pointRadius: 0,
+        },
+      ],
     };
 
-    const w1Data = {
-      labels: data.iterations,
+    const lmsArPredictedChart = {
+      labels: d.original.map((p) => p.x),
       datasets: [
         {
-          label: 'Estimated w1',
-          data: data.w1,
-          borderColor: 'blue',
-          borderWidth: 1,
-          pointRadius: 0
+          label: "LMS-AR Predicted",
+          data: d.predicted.map((p) => p.y),
+          borderColor: "#e63946",
+          borderWidth: 1.2,
+          pointRadius: 0,
+          borderDash: [4, 2],
         },
-        {
-          label: 'Optimal w1',
-          data: Array(data.N).fill(data.w_opt[0]),
-          borderColor: 'green',
-          borderWidth: 1,
-          borderDash: [5, 5],
-          pointRadius: 0
-        }
-      ]
+      ],
     };
 
-    const w2Data = {
-      labels: data.iterations,
-      datasets: [
-        {
-          label: 'Estimated w2',
-          data: data.w2,
-          borderColor: 'purple',
-          borderWidth: 1,
-          pointRadius: 0
-        },
-        {
-          label: 'Optimal w2',
-          data: Array(data.N).fill(data.w_opt[1]),
-          borderColor: 'orange',
-          borderWidth: 1,
-          borderDash: [5, 5],
-          pointRadius: 0
-        }
-      ]
-    };
+    const coefLabels = d.w_hist ? d.w_hist[0].map((_, i) => i + 1) : [];
+    const coefColors = ["#0078d4", "#e63946", "#2dc653", "#f4a261"];
+    const coefDatasets = d.w_hist
+      ? [
+          ...d.w_hist.slice(0, Math.min(4, d.P)).map((wArr, k) => ({
+            label: `w${k + 1} estimated`,
+            data: wArr,
+            borderWidth: 1.2,
+            pointRadius: 0,
+            borderColor: coefColors[k % 4],
+          })),
+          ...(d.w_opt || [])
+            .slice(0, Math.min(4, d.P))
+            .map((wOpt, k) => ({
+              label: `w${k + 1} optimal (${wOpt?.toFixed(4)})`,
+              data: new Array(coefLabels.length).fill(wOpt),
+              borderColor: coefColors[k % 4],
+              borderWidth: 1,
+              borderDash: [6, 3],
+              pointRadius: 0,
+            })),
+        ]
+      : [];
 
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', width: '100%', padding: '20px', background: '#fff', borderRadius: '8px', marginTop: '20px' }}>
-        <h3 style={{color: '#1D7480'}}>Algorithm Output (AR Process LMS)</h3>
-        <div style={{ height: '300px' }}>
-          <Line data={mseData} options={{ maintainAspectRatio: false, plugins: { title: { display: true, text: 'Mean Square Error vs Iterations' } } }} />
+      <div id="algoOutputSection" className={graphStyles.panel}>
+        <h3 className={graphStyles.panelTitle}>LMS – AR Process Output on ECG</h3>
+        <div className={graphStyles.badgeRow}>
+          <Badge label="AR Order (P)" value={d.P} />
+          <Badge label="μ" value={d.mu?.toFixed(5)} />
+          <Badge label="MC Runs" value={d.monteCarloRuns} />
+          <Badge label="Samples" value={d.N} />
         </div>
-        <div style={{ height: '300px' }}>
-          <Line data={w1Data} options={{ maintainAspectRatio: false, plugins: { title: { display: true, text: 'Random Walk of w1' } } }} />
+
+        <div className={graphStyles.guideBox}>
+          <p>
+            <b>How to read these plots:</b> MSE vs iterations should decrease and plateau when LMS-AR
+            converges. Closer overlap between original and predicted ECG means lower prediction error.
+          </p>
+          <ul>
+            <li>Try smaller μ if MSE oscillates.</li>
+            <li>Increase P if error stays high after convergence.</li>
+          </ul>
         </div>
-        <div style={{ height: '300px' }}>
-          <Line data={w2Data} options={{ maintainAspectRatio: false, plugins: { title: { display: true, text: 'Random Walk of w2' } } }} />
-        </div>
+
+        <InteractiveTutorChart
+          title="Original ECG"
+          graphKind="filtering"
+          params={params}
+          height={280}
+          chartData={originalEcgChart}
+          options={lineOpts("Original ECG", "Sample Index", "Amplitude (mV)")}
+        />
+        <InteractiveTutorChart
+          title="LMS-AR Predicted"
+          graphKind="filtering"
+          params={params}
+          height={280}
+          chartData={lmsArPredictedChart}
+          options={lineOpts("LMS-AR Predicted", "Sample Index", "Amplitude (mV)")}
+        />
+        <p className={graphStyles.describeBox}>
+          LMS learns AR coefficients from ECG data and predicts the next sample.
+        </p>
+
+        <CompareRunsChart
+          title={`MC Averaged MSE Learning Curve (${d.monteCarloRuns} runs)`}
+          graphKind="mse"
+          params={params}
+          height={280}
+          compareState={lmsArCompare}
+          onPin={pinLmsRun}
+          onClear={clearLmsRuns}
+          activeLabel={`Current: MSE (MC avg, ${d.monteCarloRuns} runs)`}
+          activeColor="#e63946"
+          activeBackgroundColor="rgba(230,57,70,0.08)"
+          activeFill
+          options={lineOpts(`MSE Learning Curve (${d.monteCarloRuns} MC runs)`, "Iteration", "MSE")}
+        />
+        <p className={graphStyles.describeBox}>
+          MSE decreases as weights converge toward the Wiener optimum. Pin runs to overlay
+          learning curves from different μ and P settings.
+        </p>
+
+        {d.w_hist && coefDatasets.length > 0 && (
+          <>
+            <InteractiveTutorChart
+              title="AR Coefficients Convergence vs Wiener Optimal"
+              graphKind="weights"
+              params={params}
+              height={260}
+              chartData={{ labels: coefLabels, datasets: coefDatasets }}
+              options={lineOpts(
+                "AR Coefficients Convergence vs Wiener Optimal",
+                "Iteration",
+                "Coefficient Value"
+              )}
+            />
+            <p className={graphStyles.describeBox}>
+              Estimated AR weights (solid) approach Wiener-Hopf optimal values (dashed).
+            </p>
+          </>
+        )}
       </div>
     );
   }
 
   if (algoResults.type === "MVDR Beamformer") {
-    const data = algoResults.data;
-    const mvdrData = {
-      labels: data.phi,
+    const d = algoResults.data;
+    const params = { algorithm: "MVDR", order: d.M };
+
+    const originalShown = d.original.slice(0, ECG_CHART_MAX_SAMPLES);
+    const denoisedShown = d.denoised.slice(0, ECG_CHART_MAX_SAMPLES);
+
+    const originalEcgChart = {
+      labels: originalShown.map((p) => p.x),
       datasets: [
         {
-          label: 'Magnitude (dB)',
-          data: data.G_dB_avg,
-          borderColor: 'blue',
-          borderWidth: 2,
-          pointRadius: 0
-        }
-      ]
+          label: "Original ECG",
+          data: originalShown.map((p) => p.y),
+          borderColor: "#0078d4",
+          borderWidth: 1.2,
+          pointRadius: 0,
+        },
+      ],
+    };
+
+    const mvdrDenoisedChart = {
+      labels: originalShown.map((p) => p.x),
+      datasets: [
+        {
+          label: "MVDR Denoised",
+          data: denoisedShown.map((p) => p.y),
+          borderColor: "#2dc653",
+          borderWidth: 1.2,
+          pointRadius: 0,
+          borderDash: [4, 2],
+        },
+      ],
     };
 
     return (
-      <div style={{ width: '100%', padding: '20px', background: '#fff', height: '400px', borderRadius: '8px', marginTop: '20px' }}>
-        <h3 style={{color: '#1D7480'}}>Algorithm Output (MVDR)</h3>
-        <Line data={mvdrData} options={{ maintainAspectRatio: false, plugins: { title: { display: true, text: 'MVDR Beamformed Output with Monte Carlo Runs' } }, scales: { x: { title: { display: true, text: 'Angle (degrees)' } }, y: { title: { display: true, text: 'Magnitude (dB)' } } } }} />
+      <div id="algoOutputSection" className={graphStyles.panel}>
+        <h3 className={graphStyles.panelTitle}>MVDR Beamformer Output on ECG</h3>
+        <div className={graphStyles.badgeRow}>
+          <Badge label="M" value={d.M} />
+          <Badge label="K" value={d.snapshots} />
+          <Badge label="θ_s" value={`${d.theta_s}°`} />
+          <Badge label="θ_i" value={`${d.theta_i}°`} />
+          <Badge label="SNR" value={`${d.snr_dB}dB`} />
+          <Badge label="INR" value={`${d.inr_dB}dB`} />
+          <Badge label="MC" value={d.monteCarloRuns} />
+        </div>
+
+        <div className={graphStyles.guideBox}>
+          <p>
+            <b>How to read these plots:</b> The denoised ECG should track the original morphology with
+            reduced interference. The beampattern peak should align with θ_s and show a deep null near θ_i.
+          </p>
+        </div>
+
+        <InteractiveTutorChart
+          title="Original ECG"
+          graphKind="filtering"
+          params={params}
+          height={280}
+          chartData={originalEcgChart}
+          options={lineOpts("Original ECG", "Sample Index", "Amplitude (mV)")}
+        />
+        <InteractiveTutorChart
+          title="MVDR Denoised ECG"
+          graphKind="filtering"
+          params={params}
+          height={280}
+          chartData={mvdrDenoisedChart}
+          options={lineOpts("MVDR Denoised ECG", "Sample Index", "Amplitude (mV)")}
+        />
+        <p className={graphStyles.describeBox}>
+          MVDR applies optimal weights to suppress interference while preserving the desired signal.
+        </p>
+
+        <CompareRunsChart
+          title={`MVDR Beampattern — MC Averaged (${d.monteCarloRuns} runs)`}
+          graphKind="beampattern"
+          params={params}
+          height={280}
+          compareState={mvdrCompare}
+          onPin={pinMvdrRun}
+          onClear={clearMvdrRuns}
+          activeLabel={`Current: Beampattern (MC avg, ${d.monteCarloRuns} runs)`}
+          activeColor="#1D7480"
+          activeBackgroundColor="rgba(29,116,128,0.07)"
+          activeFill
+          options={lineOpts(
+            `MVDR Beampattern (${d.monteCarloRuns} MC runs)`,
+            "Angle θ (degrees)",
+            "Gain (dB)",
+            {
+              y: {
+                min: -50,
+                title: { display: true, text: "Normalized Gain (dB)", font: { size: 12, weight: "bold" } },
+              },
+            }
+          )}
+        />
+        <p className={graphStyles.describeBox}>
+          Peak at θ={d.theta_s}° (desired). Null at θ={d.theta_i}° (interference). Pin runs to
+          compare beampatterns across array and DOA settings.
+        </p>
       </div>
     );
   }
