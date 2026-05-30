@@ -78,8 +78,14 @@ const chartData = { datasets };
 
   const options = {
     responsive: true,
+    maintainAspectRatio: false,
     animation: true,
     parsing: false,
+    plugins: {
+      legend: {
+        display: true,
+      },
+    },
     // plugins: {
     //   legend: {
     //     display: false,
@@ -123,7 +129,9 @@ const chartData = { datasets };
   return (
     <div className={styles.signalContainer}>
       <h3>ECG Signal (Unfiltered)</h3>
-      <Line data={chartData} options={options} />
+      <div className="dashboard-chart-shell">
+        <Line data={chartData} options={options} />
+      </div>
     </div>
   );
 };

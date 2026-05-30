@@ -2,43 +2,45 @@ import { useContext, useMemo } from "react";
 import { SimulationContext } from "../../context/SimulationContext";
 import { computePSD } from "../../utils/psd";
 import { Line } from "react-chartjs-2";
-import styles from "./ecgFilteredPSD.module.css";
+import styles from "./psdCard.module.css";
 
 export const EcgFilteredPSD = () => {
-  const { filteredSamples, generateECG, originalFs, colors, selectedChannels } =
+  const { filteredSamples, algoResults, generateECG, originalFs } =
     useContext(SimulationContext);
 
   const psdData = useMemo(() => {
-    if (!generateECG || filteredSamples.length === 0) return null;
-   // console.log("filteredSamples", filteredSamples);
-    const channel = selectedChannels[0];
-    if (!channel) return null;
+    if (!generateECG) return null;
 
-    //  pick one channel first
-    const channelSamples = filteredSamples[0];
+    let signal = [];
+    if (filteredSamples?.length > 0) {
+      signal = filteredSamples.map((p) => p.y);
+    } else if (algoResults?.type === "AR Process") {
+      signal = algoResults.data.predicted.map((p) => p.y);
+    } else if (algoResults?.type === "MVDR Beamformer") {
+      signal = algoResults.data.denoised.map((p) => p.y);
+    }
 
-    //  extract y-values (time series)
-    const signal = channelSamples.map((p) => p.y);
+    if (signal.length < 2) return null;
+    return computePSD(signal, Number(originalFs));
+  }, [filteredSamples, algoResults, generateECG, originalFs]);
 
-   // console.log("Filtered PSD signal length:", signal.length);
+  if (!psdData) {
+    return (
+      <div className={styles.card}>
+        <h3 className={styles.title}>Power Spectral Density — Processed ECG</h3>
+        <p className={styles.hint}>Apply an algorithm first to compare processed signal PSD.</p>
+      </div>
+    );
+  }
 
-    const data = computePSD(signal, originalFs);
-   // console.log("Filtered PSD data", data);
-
-    return { channel, ...data };
-  }, [filteredSamples, generateECG, originalFs, selectedChannels]);
-
-  if (!psdData) return null;
+  const fs = Number(originalFs);
 
   const chartData = {
     datasets: [
       {
-        label: `Filtered EEG PSD (${psdData.channel})`,
-        data: psdData.psd.map((p, i) => ({
-          x: psdData.freqs[i],
-          y: p,
-        })),
-        borderColor: colors[0] || "blue",
+        label: "Processed ECG PSD",
+        data: psdData.psd.map((p, i) => ({ x: psdData.freqs[i], y: p })),
+        borderColor: "#2dc653",
         borderWidth: 1,
         pointRadius: 0,
         tension: 0,
@@ -48,6 +50,7 @@ export const EcgFilteredPSD = () => {
 
   const options = {
     responsive: true,
+    maintainAspectRatio: false,
     animation: true,
     parsing: false,
     plugins: {
@@ -59,7 +62,7 @@ export const EcgFilteredPSD = () => {
       x: {
         type: "linear",
         min: 0,
-        max: originalFs / 2,
+        max: fs / 2,
         title: {
           display: true,
           text: "Frequency (Hz)",
@@ -78,7 +81,7 @@ export const EcgFilteredPSD = () => {
         min: 0,
         title: {
           display: true,
-          text: "PSD (dB/Hz) x 10^3",
+          text: "PSD (V²/Hz)",
           font: {
             size: 13,
             weight: "bold",
@@ -94,9 +97,11 @@ export const EcgFilteredPSD = () => {
   };
 
   return (
-    <div className={styles.signalContainer}>
-      <h3>Power Spectral Density — Filtered EEG</h3>
-      <Line data={chartData} options={options} />
+    <div className={styles.card}>
+      <h3 className={styles.title}>Power Spectral Density — Processed ECG</h3>
+      <div className={styles.chartShell}>
+        <Line data={chartData} options={options} />
+      </div>
     </div>
   );
 };

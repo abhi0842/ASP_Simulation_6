@@ -1,4 +1,3 @@
-/* Reset some default browser styling */
 * {
   box-sizing: border-box;
   margin: 0;
@@ -6,18 +5,15 @@
 }
 
 .box {
-  /* height: 71vh;
-background: #c6d9fa;
-padding-bottom: 5px; */
 }
+
 .container {
   height: 100%;
   max-width: 900px;
   margin: auto;
   border: 1px solid #ccc;
   border-radius: 10px;
-  background: #c6d9fa;
-    background-color: #1a5376;
+  background-color: #1a5376;
   color: #000000;
   border-radius: 12px;
   padding: 8px;
@@ -27,7 +23,6 @@ padding-bottom: 5px; */
   overflow-y: auto;
 }
 
-/* Headings styling */
 h1 {
   font-family: Arial, Helvetica, sans-serif;
   text-align: center;
@@ -36,27 +31,8 @@ h1 {
   font-size: 17px;
 }
 
-h2 {
-  color: #2b5876;
-  margin-bottom: 0px;
-  font-weight: 700;
-  font-size: 17px;
-}
-
-h3 {
-  font-weight: 700;
-  font-size: 16px;
-  margin-right: 20px;
-}
-h4 {
-  color: #000000;
-  margin-bottom: 10px;
-  font-weight: 600;
-}
-
-/* Card style for neat sections */
 .card {
-  background: #FCFCF9;
+  background: #fcfcf9;
   border-radius: 12px;
   padding: 15px;
   margin-bottom: 15px;
@@ -66,37 +42,9 @@ h4 {
 }
 
 .card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 12px 25px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12);
 }
 
-/* Ordered list style */
-ol {
-  margin-left: 23px;
-}
-
-ol li {
-  margin-bottom: 0px;
-}
-
-/* Diagram image style */
-.diagram {
-  text-align: center;
-}
-
-.diagram img {
-  max-width: 100%;
-  border-radius: 8px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-}
-
-/* Paragraph spacing */
-.steps p {
-  margin-bottom: 15px;
-  margin-left: 10px;
-}
-
-/* Responsive */
 @media (max-width: 600px) {
   .card {
     padding: 15px;
@@ -109,6 +57,7 @@ p {
   font-size: 16px;
   color: black;
 }
+
 span {
   color: #2b5876;
   margin-bottom: 0px;

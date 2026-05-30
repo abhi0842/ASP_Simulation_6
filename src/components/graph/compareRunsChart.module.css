@@ -1,0 +1,116 @@
+.compareBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+}
+
+.toolbarActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pinBtn,
+.clearBtn {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 7px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.pinBtn {
+  background: #e8f4f8;
+  color: #1d7480;
+  border-color: #1d7480;
+}
+
+.pinBtn:hover:not(:disabled) {
+  background: #d4eef4;
+}
+
+.pinBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.clearBtn {
+  background: #fff;
+  color: #64748b;
+  border-color: #cbd5e1;
+}
+
+.clearBtn:hover:not(:disabled) {
+  background: #fef2f2;
+  color: #b91c1c;
+  border-color: #fecaca;
+}
+
+.clearBtn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.helperText {
+  margin: 0;
+  font-size: 12px;
+  color: #64748b;
+  line-height: 1.45;
+  flex: 1;
+  min-width: 200px;
+}
+
+.pinnedList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pinnedChip {
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: #f1f5f9;
+  border: 1px dashed #94a3b8;
+  color: #475569;
+}
+
+.pinnedChip strong {
+  color: #334155;
+  font-weight: 600;
+}
+
+.compareBadge {
+  font-size: 11px;
+  color: #1d7480;
+  font-weight: 600;
+}
+
+@media (max-width: 600px) {
+  .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .toolbarActions {
+    justify-content: center;
+  }
+}
