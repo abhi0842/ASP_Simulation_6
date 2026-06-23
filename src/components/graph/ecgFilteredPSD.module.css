@@ -1,0 +1,32 @@
+.signalContainer {
+  max-height: 400px;
+  width: 50%;
+  background-color: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #dadada;
+  box-shadow: 0px 2px 8px rgba(94, 94, 94, 0.22);
+  margin-bottom: 20px;
+  margin-top: 20px;
+  padding: 12px 20px 12px 12px;
+  box-sizing: border-box;
+  min-width: 0;
+}
+
+.signalContainer h3 {
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin: 0 0 8px;
+}
+
+.chartShell {
+  position: relative;
+  height: 300px;
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .signalContainer {
+    max-height: 400px;
+    width: 100%;
+  }
+}

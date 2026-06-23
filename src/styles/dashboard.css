@@ -13,6 +13,7 @@ body {
   margin: 0;
   overflow-x: hidden;
   overflow-y: auto;
+  scroll-behavior: smooth;
 }
 
 #root {
@@ -34,10 +35,60 @@ video {
   max-width: 100%;
 }
 
+.signal-chart-tooltip {
+  position: absolute;
+  z-index: 10;
+  min-width: 150px;
+  padding: 8px 12px;
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid #334155;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.1s ease;
+  font-size: 0.75rem;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+.signal-chart-tooltip__title {
+  font-weight: 700;
+  color: #fff;
+  border-bottom: 1px solid #334155;
+  padding-bottom: 4px;
+  margin-bottom: 6px;
+}
+
+.signal-chart-tooltip__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  line-height: 1.5;
+}
+
+.signal-chart-tooltip__label {
+  font-weight: 500;
+}
+
+.signal-chart-tooltip__value {
+  color: #fff;
+  font-family: ui-monospace, "Cascadia Code", monospace;
+  font-weight: 700;
+}
+
 .dashboard-chart-shell canvas {
   width: 100% !important;
   height: 100% !important;
   max-height: 370px;
   display: block;
   margin: 0 auto;
+}
+
+.dashboard-chart-shell--short {
+  min-height: 200px;
+}
+
+.dashboard-chart-shell--short canvas {
+  max-height: 220px;
 }

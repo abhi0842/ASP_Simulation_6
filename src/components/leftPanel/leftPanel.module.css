@@ -28,9 +28,58 @@
   min-width: 0;
 }
 
+.psdContainer {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: stretch;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+}
+
+.moreDetails {
+  width: 100%;
+  min-width: 0;
+}
+
+.moreDetailsHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.moreDetailsHeader h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.moreDetailsToggle {
+  padding: 0.35rem 0.75rem;
+  background: rgb(29 116 128);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.moreDetailsToggle:hover {
+  background: #268eb4;
+}
+
 @media (max-width: 768px) {
   .mainStack {
     gap: 16px;
+  }
+
+  .psdContainer {
+    flex-direction: column;
+    gap: 10px;
   }
 
   .contentGrid {

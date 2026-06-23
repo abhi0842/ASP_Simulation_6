@@ -55,6 +55,7 @@ export const EcgNoisy = () => {
     rawSamples,
     selectedChannels,
     setNoisySamples,
+    setCleanSignal,
   } = useContext(SimulationContext);
 
   // toggle when all noise is false
@@ -70,12 +71,15 @@ export const EcgNoisy = () => {
   const fsOriginal = inferFs(rawSamples);
   const displayData = resampleForDisplay(rawSamples, fsOriginal, originalFs);
   const limited = displayData.filter(p => p.x <= time);
+  const channel = selectedChannels[0] || "ECG_I";
 
-  // prepare noisy channels
   const noisyChannels = {};
+  const cleanChannels = {};
 
   selectedChannels.forEach(ch => {
-    let channelSignal = limited.map(p => p[ch]);
+    const cleanSignal = limited.map(p => p[ch]);
+    cleanChannels[ch] = cleanSignal;
+    let channelSignal = [...cleanSignal];
 
     if (noise.baseline) {
       channelSignal = addBaselineWander(channelSignal, originalFs);
@@ -90,12 +94,12 @@ export const EcgNoisy = () => {
     noisyChannels[ch] = channelSignal;
   });
 
-  // rebuild samples
   return limited.map((p, i) => {
     const obj = { x: p.x };
     selectedChannels.forEach(ch => {
       obj[ch] = noisyChannels[ch][i];
     });
+    obj._clean = cleanChannels[channel][i];
     return obj;
   });
 
@@ -104,10 +108,13 @@ export const EcgNoisy = () => {
   useEffect(() => {
     if (!applyNoiseTrigger || !data.length) {
       setNoisySamples([]);
+      setCleanSignal([]);
       return;
     }
-    setNoisySamples(data);
-  }, [data, applyNoiseTrigger, setNoisySamples]);
+    const channel = selectedChannels[0] || "ECG_I";
+    setNoisySamples(data.map((p) => ({ x: p.x, y: p[channel] })));
+    setCleanSignal(data.map((p) => p._clean));
+  }, [applyNoiseTrigger, data, selectedChannels, setNoisySamples, setCleanSignal]);
 
   const datasets = selectedChannels.map((ch) => ({
     label: ch,

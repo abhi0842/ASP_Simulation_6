@@ -1,0 +1,339 @@
+.container {
+  width: 100%;
+  min-width: 0;
+  background: #ffffff;
+  border-radius: 18px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06);
+  padding: 24px;
+  box-sizing: border-box;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.header h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.toggleBtn {
+  padding: 0.35rem 0.75rem;
+  background: rgb(29 116 128);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.toggleBtn:hover {
+  background: #268eb4;
+}
+
+.body {
+  margin-top: 16px;
+}
+
+.subtitle {
+  margin: 0 0 14px;
+  color: #64748b;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.controls {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-size: 0.9rem;
+  color: #0f172a;
+}
+
+.value {
+  font-family: ui-monospace, "Cascadia Code", monospace;
+  color: #1d7480;
+  font-weight: 700;
+}
+
+.controls input[type="range"] {
+  width: 100%;
+  accent-color: #1d7480;
+}
+
+.runBtn {
+  width: 100%;
+  background: #1d7480;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.runBtn:hover {
+  background: #268eb4;
+}
+
+.runBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.chartBlock h4 {
+  margin: 0 0 6px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.chartHint {
+  margin: 0 0 12px;
+  font-size: 0.82rem;
+  color: #64748b;
+  line-height: 1.45;
+}
+
+.definitionBox {
+  margin-bottom: 16px;
+  padding: 14px 16px;
+  background: rgba(29, 116, 128, 0.06);
+  border: 1px solid rgba(29, 116, 128, 0.2);
+  border-radius: 10px;
+}
+
+.definitionBox strong {
+  display: block;
+  color: #1d7480;
+  font-size: 0.92rem;
+  margin-bottom: 6px;
+}
+
+.definitionBox p {
+  margin: 0 0 12px;
+  font-size: 0.85rem;
+  color: #475569;
+  line-height: 1.55;
+}
+
+.theoryBlock {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(29, 116, 128, 0.2);
+}
+
+.theoryTitle {
+  display: block;
+  color: #1d7480;
+  font-size: 0.88rem;
+  margin-bottom: 10px;
+}
+
+.formulaRow {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-bottom: 12px;
+}
+
+.formulaRow:last-child {
+  margin-bottom: 0;
+}
+
+.formula {
+  font-family: ui-monospace, "Cambria Math", "Times New Roman", serif;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #0f172a;
+  letter-spacing: 0.01em;
+}
+
+.formulaNote {
+  font-size: 0.78rem;
+  color: #64748b;
+  line-height: 1.4;
+}
+
+.progressPanel {
+  margin-bottom: 18px;
+  padding: 16px;
+  border: 1px solid #dbeafe;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #f8fafc 0%, #f0f9fb 100%);
+}
+
+.progressHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.progressTitle {
+  font-weight: 600;
+  color: #0f172a;
+  font-size: 0.92rem;
+}
+
+.progressPercent {
+  font-family: ui-monospace, "Cascadia Code", monospace;
+  font-weight: 700;
+  color: #1d7480;
+  font-size: 0.9rem;
+}
+
+.progressTrack {
+  height: 8px;
+  background: #e2e8f0;
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.progressFill {
+  height: 100%;
+  background: linear-gradient(90deg, #1d7480, #2ecc71);
+  border-radius: 999px;
+  transition: width 0.25s ease;
+}
+
+.progressMessage {
+  margin: 0 0 8px;
+  font-size: 0.88rem;
+  color: #334155;
+  font-weight: 500;
+}
+
+.trialCounter {
+  margin: 0 0 14px;
+  font-size: 0.82rem;
+  color: #64748b;
+}
+
+.trialCounter strong {
+  color: #1d7480;
+  font-family: ui-monospace, "Cascadia Code", monospace;
+}
+
+.pipeline {
+  list-style: none;
+  margin: 0 0 14px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pipelineStep {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.pipelineStep.pending {
+  opacity: 0.55;
+}
+
+.pipelineStep.active {
+  background: #fff;
+  border-color: #1d7480;
+  box-shadow: 0 2px 8px rgba(29, 116, 128, 0.12);
+}
+
+.pipelineStep.done {
+  opacity: 0.85;
+}
+
+.stepIcon {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: #1d7480;
+}
+
+.pipelineStep.active .stepIcon {
+  animation: mcPulse 1s ease-in-out infinite;
+}
+
+.stepText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.stepLabel {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.stepDetail {
+  font-size: 0.78rem;
+  color: #64748b;
+  line-height: 1.35;
+}
+
+.spinnerRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid #cbd5e1;
+  border-top-color: #1d7480;
+  border-radius: 50%;
+  animation: mcSpin 0.8s linear infinite;
+  flex-shrink: 0;
+}
+
+.spinnerHint {
+  font-size: 0.78rem;
+  color: #64748b;
+  line-height: 1.4;
+}
+
+@keyframes mcSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes mcPulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.15);
+  }
+}

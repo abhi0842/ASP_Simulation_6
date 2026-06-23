@@ -1,7 +1,6 @@
 .rightPanelContainer {
   width: 100%;
   min-width: 0;
-  min-height: 100%;
   background-color: #FCFCF9;
   box-sizing: border-box;
 }
@@ -79,17 +78,66 @@ input[type="number"] {
   background: #FCFCF9;
   border: 1px solid #c9c9ca;
   color: #000000;
-  padding: 5px 10px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  outline: none;
+  font-size: 14px;
+  transition: 0.2s;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+}
+
+.fieldLabel {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #000000;
+  display: block;
+}
+
+.paramSection {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #1d7480;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-top: 4px;
+}
+
+.fieldHint {
+  font-size: 11px;
+  color: #666;
+  line-height: 1.3;
+}
+
+.algoInput {
+  width: 100%;
+  box-sizing: border-box;
+  background: #FCFCF9;
+  border: 1px solid #c9c9ca;
+  color: #000000;
+  padding: 6px 10px;
   border-radius: 6px;
   outline: none;
   font-size: 14px;
   transition: 0.2s;
 }
 
-select:hover,
+select:hover { border-color: #3e4652; }
+
+select:focus { border-color: rgb(29 116 128); }
+
+.algoInput:hover,
 input[type="number"]:hover { border-color: #3e4652; }
 
-select:focus,
+.algoInput:focus,
 input[type="number"]:focus { border-color: rgb(29 116 128); }
 
 input[type="range"] {
@@ -119,10 +167,98 @@ input[type="range"] {
   gap: 10px;
 }
 
+.actionBtnRow {
+  display: flex;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.actionBtnRow button {
+  flex: 1;
+  width: auto;
+  margin-top: 0;
+}
+
+.compareBtn {
+  background: #ffffff;
+  color: rgb(29 116 128);
+  border: 2px solid rgb(29 116 128);
+}
+
+.compareBtn:hover {
+  background: rgba(29, 116, 128, 0.08);
+}
+
+.noiseItem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.noiseLabel {
+  cursor: pointer;
+  justify-content: flex-start;
+  width: 100%;
+}
+
+.noiseLabelText {
+  flex: 1;
+}
+
+.infoIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1.5px solid #1D7480;
+  color: #1D7480;
+  font-size: 10px;
+  font-weight: 700;
+  font-style: italic;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.noiseStatus {
+  margin: 4px 0 0;
+  padding: 8px 10px;
+  background: #e8f5e9;
+  border-radius: 6px;
+  font-size: 12px;
+  color: #2e7d32;
+  line-height: 1.4;
+}
+
+.noiseApplyBtn {
+  margin-top: 6px;
+  width: 100%;
+  background: rgb(29 116 128);
+  color: white;
+  border: none;
+  padding: 9px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s;
+  font-weight: 600;
+}
+
+.noiseApplyBtn:hover {
+  background: #268eb4;
+}
+
 .psdContainer {
   display: flex;
   justify-content: space-between;
   gap: 10px;
+}
+
+.psdContainer button {
+  flex: 1;
+  width: auto;
+  margin-top: 6px;
 }
 
 .hint {

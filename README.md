@@ -1,334 +1,461 @@
-# Virtual Laboratory: Adaptive Signal Processing for ECG Analysis
+# Adaptive Signal Processing Virtual Laboratory
 
-**Experiment 3(a) — Clean and Process Heart Signals using Adaptive Filters**
+**Implementation and Analysis of Autoregressive Stochastic Processes and Minimum Variance Distortionless Beamformer using LMS Algorithm and Monte Carlo Runs**
 
----
-
-Welcome to the **Adaptive Signal Processing (ASP) Virtual Lab**! This interactive simulator runs entirely in your web browser. It is designed to teach you how smart, self-tuning digital filters can clean real-world medical signals—specifically **electrocardiograms (ECGs)** that record the heart's electrical rhythms.
-
-Through this dashboard, you can inject various kinds of real-world noise (like muscle movement or powerline hum) into real heart recordings, and see how two powerful algorithms—**LMS-AR Prediction** and **MVDR Beamforming**—clean the signals in real-time.
+*B.Tech / M.Tech — Electronics & Communication Engineering · Academic Year 2024–2025*
 
 ---
 
-## 🌟 Table of Contents
-1. [What This Simulation Does (The Big Picture)](#1-what-this-simulation-does-the-big-picture)
-2. [ECG Signals & Real-World Noise (The Challenge)](#2-ecg-signals--real-world-noise-the-challenge)
-3. [The Theory Made Easy: How the Filters Work](#3-the-theory-made-easy-how-the-filters-work)
-4. [Step-by-Step Simulation Guide (All Use Cases)](#4-step-by-step-simulation-guide-all-use-cases)
-5. [Interactive Experiments to Try](#5-interactive-experiments-to-try)
-6. [The Science & Mathematics (For Advanced Learners)](#6-the-science--mathematics-for-advanced-learners)
-7. [Project Directory & File Structure](#7-project-directory--file-structure)
-8. [Installation and Local Usage](#8-installation-and-local-usage)
+Interactive browser-based laboratory for **Experiment 6 — Adaptive Signal Processing for ECG Analysis**. This simulator implements the unified theoretical framework from the ASP theory document: **AR stochastic modelling**, **LMS adaptive filtering**, **MVDR beamforming**, **Power Spectral Density (PSD) analysis**, and **Monte Carlo statistical validation** on real electrocardiogram (ECG) recordings.
 
 ---
 
-## 1. What This Simulation Does (The Big Picture)
+## Table of Contents
 
-In a hospital or a smart wearable device (like a smartwatch), reading heartbeats is crucial. However, the human body and the surrounding environment are full of electrical noise. 
+1. [Introduction](#1-introduction)
+2. [What This Simulation Does](#2-what-this-simulation-does)
+3. [Stochastic Processes — Theoretical Background](#3-stochastic-processes--theoretical-background)
+4. [Autoregressive (AR) Stochastic Processes](#4-autoregressive-ar-stochastic-processes)
+5. [Least Mean Squares (LMS) Algorithm](#5-least-mean-squares-lms-algorithm)
+6. [MVDR Beamformer](#6-mvdr-beamformer)
+7. [Monte Carlo Simulation](#7-monte-carlo-simulation)
+8. [Unified Framework & Signal Processing Pipeline](#8-unified-framework--signal-processing-pipeline)
+9. [Step-by-Step Simulation Guide](#9-step-by-step-simulation-guide)
+10. [Interactive Experiments](#10-interactive-experiments)
+11. [Summary of Key Equations](#11-summary-of-key-equations)
+12. [References](#12-references)
+13. [Project Structure](#13-project-structure)
+14. [Installation and Local Usage](#14-installation-and-local-usage)
 
-This simulator lets you run a complete digital signal processing pipeline on your computer:
+---
 
-| Stage | What it does in simple terms |
+## 1. Introduction
+
+Adaptive signal processing is a branch of digital signal processing (DSP) in which filter parameters are automatically adjusted based on the characteristics of the input signal. Unlike fixed filters, adaptive filters track time-varying statistical properties of signals, making them indispensable in noise cancellation, echo elimination, channel equalization, and biomedical signal processing.
+
+This laboratory presents four interconnected concepts:
+
+| Topic | Role in the lab |
 | :--- | :--- |
-| 📊 **Signal Setup** | Choose a real-world recorded heartbeat file or upload your own. |
-| 🔊 **Add Noise** | Inject realistic noise like breathing drift, muscle twitches, or electrical hum. |
-| 🧠 **Apply Filters** | Run smart adaptive algorithms that self-tune and learn how to extract the clean heartbeat. |
-| 📈 **Visualize** | Watch real-time charts show you the original clean heartbeat, the noisy version, the cleaned version, and the internal learning process. |
-| 🚀 **Compare Runs** | Pin your settings, change a dial, and run it again to see which filter setting worked best! |
+| **AR stochastic processes** | Model the structured, predictable component of ECG waveforms |
+| **LMS algorithm** | Adaptively denoise the corrupted ECG using gradient-based weight updates |
+| **MVDR beamformer** | Optimally reject directional interference under a distortionless constraint |
+| **Monte Carlo simulation** | Evaluate convergence, steady-state MSE, and confidence bands statistically |
+
+The simulator applies these methods to **ECG signals** corrupted by realistic noise: baseline wander, powerline hum (50 Hz), and EMG muscle noise.
 
 ---
 
-## 2. ECG Signals & Real-World Noise (The Challenge)
+## 2. What This Simulation Does
 
-### 2.1 What is an ECG?
-An **electrocardiogram (ECG)** measures the tiny electrical impulses that make your heart beat. A normal heartbeat waveform has three main landmarks:
-*   **P Wave:** The electrical signal that squeezes the top chambers (atria) of the heart.
-*   **QRS Complex:** The big spike that squeezes the main pumping chambers (ventricles). This is the strongest part of the signal.
-*   **T Wave:** The recovery signal as the heart prepares for the next beat.
+The dashboard runs a complete adaptive signal processing workflow:
 
-For doctors or smart health algorithms to detect problems like irregular heartbeats (arrhythmias), these waves must be sharp and clear.
+| Stage | Simulator action |
+| :--- | :--- |
+| **Signal Setup** | Load built-in ECG datasets (`ecg100`, `ecg200`, `ecg300`) or upload CSV/TXT |
+| **Add Noise** | Inject baseline wander, 50 Hz powerline hum, and/or EMG noise |
+| **Apply Filter** | Run **LMS Adaptive Filter** (temporal) or **MVDR Beamformer** (spatial) |
+| **Compute PSD** | View unfiltered vs. filtered power spectral density side by side |
+| **LMS vs MVDR Comparison** | Run both algorithms on the same noisy signal and compare outputs |
+| **Monte Carlo Runs** | Repeat LMS denoising with independent noise realisations and analyse ensemble statistics |
 
-### 2.2 Why do heart signals get noisy?
-In the real world, electrodes stuck to the skin capture more than just the heart. This simulator models three common noise sources:
+**Algorithms available in Algorithm Setup:**
 
-```
-  Clean Heartbeat         Noisy Environment              Corrupted ECG Signal
- [Sharp, clear wave] + [Breathing + Outlet Hum + Twitch] = [Messy, wavy waveform]
-```
-
-1.  **Baseline Wander (Breathing & Movement):**
-    *   *What it is:* A slow, wavy drift that makes the entire ECG line float up and down.
-    *   *Cause:* The patient breathing or moving their torso.
-2.  **Powerline Interference (50 Hz / 60 Hz Hum):**
-    *   *What it is:* A very fast, sharp, continuous hum vibrating through the signal.
-    *   *Cause:* Electromagnetic fields from wall outlets, medical equipment, and lighting.
-3.  **EMG (Muscle) Noise:**
-    *   *What it is:* Rough, fuzzy, completely random static covering the signal.
-    *   *Cause:* The patient tensing their muscles or shivering near the electrodes.
+- **LMS Adaptive Filter** — adaptive noise cancellation with filter order *M* and step size μ
+- **MVDR Beamformer** — spatial filtering with sensor array, steering angles, and diagonal loading
 
 ---
 
-## 3. The Theory Made Easy: How the Filters Work
+## 3. Stochastic Processes — Theoretical Background
 
-Instead of using traditional "static" filters that block fixed frequencies, this simulator uses **Adaptive Filters**. These filters act like small AI models: they start with no knowledge of the noise and continuously adapt their dials (coefficients) sample-by-sample as the signal plays!
+### 3.1 Definition
 
-The simulator lets you play with two major classes of adaptive processing: **Temporal (Time-based)** and **Spatial (Direction-based)**.
+A **stochastic process** is a collection of random variables $\{x[n],\, n \in \mathbb{Z}\}$ defined on a common probability space. In practice, processes are characterised by second-order statistics: the mean and the autocorrelation function.
 
----
+### 3.2 Wide-Sense Stationarity (WSS)
 
-### 🧠 3.1 LMS-AR Prediction (Temporal Filter)
-> **The Real-World Analogy:** Imagine an AI assistant trying to guess the next note in a song by listening to the last few notes. If it guesses too high or too low, it hears the correct note, calculates its mistake (error), and slightly adjusts its dials so its next guess is closer.
+A process is **wide-sense stationary** if:
 
-```
-                  ┌───────────────────────┐
-  Past ECG  ────> │  LMS-AR Predictor     │ ───> Predicted Clean ECG
-  Samples         │ (Adapts weights on   │
-                  │  every single sample) │ <─── Adjusts based on Error
-                  └───────────────────────┘
-```
+1. **Constant mean:** $\mathbb{E}\{x[n]\} = \mu$ (independent of $n$)
+2. **Autocorrelation depends only on lag:** $R_x[n_1, n_2] = R_x[n_1 - n_2] = R_x[k]$
 
-*   **How it cleans ECGs:** Healthy heartbeats follow repeating, structured patterns. Random noise (like a muscle twitch or powerline static) does not follow a predictable pattern. The LMS-AR filter learns the predictable, structured part of the ECG and ignores the chaotic noise, separating the two!
-*   **What the dials do:**
-    *   **AR Order (P):** *Memory Length.* How many past samples (e.g. 5, 8, or 10) the filter looks at to predict the current sample. A higher order can model complex shapes but requires more computation and might pick up unwanted details.
-    *   **Step Size ($\mu$):** *Learning Rate.* How fast the filter adjusts its dials. 
-        *   *Too small:* The filter learns too slowly, taking forever to clean the signal.
-        *   *Too large:* The filter makes wild, aggressive adjustments, becomes unstable, and goes completely out of control (divergence).
-    *   **Monte Carlo Runs (R):** *Averaging the luck.* We run the simulation multiple times with tiny random shifts and average them. This smooths out random spikes, giving you a clean, clear look at how fast the algorithm is learning (the MSE Curve).
+The autocorrelation function (ACF) is:
+
+$$R_x[k] = \mathbb{E}\{\, x[n] \cdot x[n-k] \,\}$$
+
+### 3.3 Power Spectral Density (Wiener–Khinchin Theorem)
+
+For a WSS process, the PSD is the discrete-time Fourier transform of the ACF:
+
+$$S_x(e^{j\omega}) = \sum_{k=-\infty}^{\infty} R_x[k]\, e^{-j\omega k}$$
+
+In the simulator, PSD is estimated via **Hanning-windowed FFT** and displayed in **V²/Hz** from 0 to $f_s/2$ Hz when you click **Compute PSD**.
 
 ---
 
-### 📡 3.2 MVDR Beamforming (Spatial Filter)
-> **The Real-World Analogy:** Imagine you are at a noisy press conference. You have a row of microphones (a sensor array). You want to hear the main speaker clearly. The MVDR algorithm acts as a smart controller: it keeps a "spotlight" on the main speaker (Desired Direction) completely unchanged, while steering a digital "blind spot" (a null) directly toward the loud heckler in the audience (Interference Direction).
+## 4. Autoregressive (AR) Stochastic Processes
 
-```
-   [Interference Noise] (e.g. -45°)              [ECG Signal] (e.g. 30°)
-           \                                           /
-            \                                         /
-             ▼                                       ▼
-       ┌───┬───┬───┬───┬───┬───┬───┬───┐ (Electrode Array, M sensors)
-       └───┴───┴───┴───┴───┴───┴───┴───┘
-                       │
-                       ▼
-             [Smart MVDR Weights] ───> Keeps 30° at 100% volume
-                                       Puts -45° in absolute silence (0%)
-```
+### 4.1 AR(p) Model
 
-*   **How it cleans ECGs:** In multi-lead setups (where we have multiple electrodes placed across the chest), heart signals and external electrical noises arrive from different physical directions. MVDR filters the signals across these sensors to keep the heartbeat pristine while actively canceling the directional interference.
-*   **What the dials do:**
-    *   **Array Size (M):** *Number of Sensors.* How many electrodes are in your line. More sensors mean sharper spotlights and much deeper, more precise blind spots!
-    *   **Desired Angle ($\theta_s$):** The physical direction of the heart signal relative to the electrodes.
-    *   **Interference Angle ($\theta_i$):** The physical direction where the main noise source (like an electrical machine) is located.
-    *   **Snapshots (K):** *Data Collection.* How many samples of data the algorithm gathers to calculate the noise profile before drawing the spotlight. More snapshots = a more accurate filter, but it requires more memory.
-    *   **SNR & INR (dB):** How loud the heart signal (Signal-to-Noise Ratio) and the noise source (Interference-to-Noise Ratio) are compared to background room static.
+An autoregressive process of order $p$, denoted **AR(p)**, expresses the current sample as a linear combination of $p$ past samples plus white noise:
 
----
+$$x[n] = a_1 x[n-1] + a_2 x[n-2] + \cdots + a_p x[n-p] + w[n]$$
 
-## 4. Step-by-Step Simulation Guide (All Use Cases)
+Compact form:
 
-Follow these clear instructions to run the simulation experiments like a scientist!
+$$x[n] = \mathbf{a}^T \mathbf{x}_{n-1} + w[n], \quad w[n] \sim \mathcal{N}(0, \sigma_w^2)$$
 
----
+### 4.2 Stability
 
-### 📂 Use Case 1: Select and Load an ECG Signal
-Before you clean any signal, you must load it into the system's memory.
+The AR(p) process is stationary when all roots of the characteristic polynomial lie inside the unit circle:
 
-1.  Locate the **Signal Setup** panel on the top-right of your screen.
-2.  Click the dropdown menu next to **Select ECG Dataset**. You have three built-in choices:
-    *   `ECG Dataset 1 (ecg100)`: A long, detailed, standard clinical recording. Great for seeing the filter learn over time.
-    *   `ECG Dataset 2 (ecg200)`: A shorter, clean recording in millivolts. Excellent for quick demonstrations.
-    *   `ECG Dataset 3 (ecg300)`: Recorded at a slower frequency, demonstrating how the system handles different time steps.
-    *   *Optional:* You can select **Upload Custom File** to load a `.csv` or `.txt` file containing your own recorded heart data!
-3.  Adjust the **Duration (seconds)** slider to choose how much of the signal to load (e.g. 5 seconds to view close-up details, or 30 seconds to see long-term trends).
-4.  **Crucial Step:** Click the **Generate ECG Signal** button. The original, clean heartbeat will immediately render on the **ECG Signal (Unfiltered)** chart on the left.
+$$A(z) = 1 - a_1 z^{-1} - a_2 z^{-2} - \cdots - a_p z^{-p}, \quad |z_i| < 1$$
+
+### 4.3 AR Power Spectral Density
+
+$$S_x(e^{j\omega}) = \frac{\sigma_w^2}{\left|A(e^{j\omega})\right|^2} = \frac{\sigma_w^2}{\left|1 - \sum_{k=1}^{p} a_k e^{-j\omega k}\right|^2}$$
+
+This all-pole model captures prominent spectral peaks in signals such as speech and ECG.
+
+### 4.4 Yule–Walker Equations
+
+AR coefficients are estimated from the signal autocorrelation:
+
+$$\mathbf{R}\,\mathbf{a} = -\mathbf{r}, \quad \mathbf{a} = -\mathbf{R}^{-1}\mathbf{r}$$
+
+Noise variance: $\hat{\sigma}_w^2 = R_x[0] + \mathbf{a}^T \mathbf{r}$
+
+### 4.5 Model Order Selection
+
+| Criterion | Expression |
+| :--- | :--- |
+| **AIC** | $\mathrm{AIC}(p) = N \ln(\hat{\sigma}_w^2(p)) + 2p$ |
+| **BIC / MDL** | $\mathrm{BIC}(p) = N \ln(\hat{\sigma}_w^2(p)) + p \ln(N)$ |
+
+The optimal order minimises the chosen criterion.
 
 ---
 
-### 🔊 Use Case 2: Inject Noise into the Signal
-Real-world signals are messy. Let's mess up our clean heartbeat to test the filters.
+## 5. Least Mean Squares (LMS) Algorithm
 
-1.  Locate the **Noise Configuration** panel.
-2.  Select the type of noise you want to inject by checking the boxes:
-    *   **Baseline Wander:** Adds a slow, wavy rise and fall.
-    *   **Powerline Hum (50Hz):** Adds a fast, vibrating electrical hum.
-    *   **EMG Noise:** Adds fuzzy, random static.
-3.  Click the **Add Noise to Signal** button.
-4.  Look at the new **ECG Signal (Noisy)** chart on the left. Your neat, clean heartbeat is now buried under waves and fuzz!
+### 5.1 Adaptive Filtering Problem
 
----
+Given input regression vector $\mathbf{x}[n] \in \mathbb{R}^M$ and desired signal $d[n]$:
 
-### 🧠 Use Case 3: Clean the Signal using LMS-AR (Temporal Filtering)
-Now, let's train a smart time-based filter to reconstruct the clean heartbeat.
+$$\hat{y}[n] = \mathbf{w}^T[n]\,\mathbf{x}[n], \qquad e[n] = d[n] - \hat{y}[n]$$
 
-1.  In the **Algorithm Selector** dropdown, select **LMS-AR Prediction** (sometimes labeled as `AR Process`).
-2.  Set your dials in the configuration panel:
-    *   **AR Order (P):** Start with `5`.
-    *   **Step Size ($\mu$):** Start with `0.001` or `0.002` (a safe, stable learning rate).
-    *   **Monte Carlo Runs:** Set to `50` for a smooth diagnostics curve.
-3.  Click **Apply Algorithm**.
-4.  **Inspect the results on the charts:**
-    *   **Original vs. LMS-AR Predicted:** The blue line (original) and green line (predicted/cleaned) will be plotted. Notice how the green line quickly aligns itself with the blue line!
-    *   **MSE Learning Curve:** Watch how the error starts high and rapidly drops and plateaus. This shows the filter "learning" and settling down.
-    *   **AR Coefficient Convergence:** See how the lines (representing the filter's dials tuning themselves in real-time) smoothly transition until they perfectly align with the dashed lines (which represent the absolute mathematical ideal Wiener solution).
+In this simulator, LMS performs **adaptive noise cancellation** on the noisy ECG: the filter learns to estimate and subtract structured noise while preserving the heartbeat waveform.
 
----
+### 5.2 Wiener–Hopf Optimal Solution
 
-### 📡 Use Case 4: Clean the Signal using MVDR (Spatial Filtering)
-Let's switch paradigms and use a smart sensor array to filter out noise coming from a bad direction.
+The weight vector minimising mean square error $J(\mathbf{w}) = \mathbb{E}\{e^2[n]\}$ satisfies:
 
-1.  In the **Algorithm Selector** dropdown, select **MVDR Beamformer**.
-2.  Set your spatial dials:
-    *   **Array Size (M):** Set to `8` sensors.
-    *   **Desired Angle ($\theta_s$):** Let's assume our heart is at `30°`.
-    *   **Interference Angle ($\theta_i$):** Let's assume an electrical machine is humming at `-45°`.
-    *   **Snapshots (K):** Set to `256` for a solid noise calculation.
-3.  Click **Apply Algorithm**.
-4.  **Inspect the results on the charts:**
-    *   **Original vs. MVDR Denoised:** See how the processed signal matches the original heart signal, with the directional interference stripped away.
-    *   **Beampattern Chart:** This is a top-down radar-like chart. Notice the massive, deep downwards spike (a null) pointing exactly at `-45°` (Interference)! The filter has successfully blocked that direction while keeping `30°` (Desired) wide open.
+$$\mathbf{R}\,\mathbf{w}_{\mathrm{opt}} = \mathbf{p}, \qquad \mathbf{w}_{\mathrm{opt}} = \mathbf{R}^{-1}\mathbf{p}$$
 
----
+Minimum MSE: $J_{\min} = \sigma_d^2 - \mathbf{p}^T \mathbf{w}_{\mathrm{opt}}$
 
-### 📊 Use Case 5: Verify Frequencies (Power Spectral Density - PSD)
-How can we prove the noise is truly gone? By looking at its "color" or frequency signature.
+### 5.3 LMS Update Rule
 
-1.  Scroll down to the **Power Spectral Density (PSD)** charts.
-2.  Make sure you have injected noise and applied an algorithm.
-3.  Click **Compute PSD**.
-4.  **Compare the two frequency spectrum charts:**
-    *   **Noisy ECG Spectrum:** If you injected Powerline Hum, you will see a massive, sharp spike pointing straight up at **50 Hz**.
-    *   **Processed ECG Spectrum:** Look at the same spot at 50 Hz. The spike has been flattened! The filter successfully detected and erased that frequency signature.
+The LMS algorithm replaces statistical expectations with instantaneous gradient estimates:
+
+| Step | Equation |
+| :--- | :--- |
+| Filter output | $y[n] = \mathbf{w}^T[n]\,\mathbf{x}[n]$ |
+| Error | $e[n] = d[n] - y[n]$ |
+| Weight update | $\mathbf{w}[n+1] = \mathbf{w}[n] + 2\mu\, e[n]\,\mathbf{x}[n]$ |
+
+**Simulator parameters:**
+
+- **Filter Order (M)** — number of taps ($1 \leq M \leq 256$)
+- **Step size μ** — learning rate; typical range $10^{-8}$ to $0.1$
+
+### 5.4 Convergence and Misadjustment
+
+**Stability condition:**
+
+$$0 < \mu < \frac{1}{\lambda_{\max}}$$
+
+Conservative bound: $0 < \mu < 1/(M \cdot P_x)$ where $P_x$ is average input power.
+
+**Mode time constant:** $\tau_k = 1/(4\mu\lambda_k)$
+
+**Misadjustment:** $\mathcal{M} \approx \mu \cdot \mathrm{tr}(\mathbf{R})$
+
+| Step size μ | Convergence | Steady-state MSE | Stability |
+| :--- | :--- | :--- | :--- |
+| Large μ | Fast | High (large EMSE) | Risk of divergence |
+| Small μ | Slow | Low (near $J_{\min}$) | Guaranteed stable |
+| Moderate μ | Balanced | Acceptable EMSE | Stable |
 
 ---
 
-### 📍 Use Case 6: Compare Different Settings (Compare Runs Mode)
-Which settings make the filter learn fastest? Let's benchmark them.
+## 6. MVDR Beamformer
 
-1.  Run the **LMS-AR** algorithm with a small step size (e.g. `Step Size = 0.0005`).
-2.  Once the charts render, click the **Pin Current Run** button in the comparison panel. This saves your learning curve on the graph.
-3.  Increase the step size (e.g. `Step Size = 0.003`) and click **Apply Algorithm** again.
-4.  Look at the **MSE Learning Curve** chart. The active run (solid line) and the pinned run (dashed line) are overlayed! 
-5.  *Notice:* The larger step size drops to zero much faster (faster learning), but it might wobble more (slight instability) compared to the slow, steady pinned run.
-6.  Click **Clear Comparison** when you want to start a new experiment.
+### 6.1 Concept
 
----
+The **Minimum Variance Distortionless Response (MVDR)** beamformer (Capon, 1969) maximises output SINR while guaranteeing the desired signal passes undistorted. Unlike LMS, MVDR solves a **constrained optimisation** problem analytically.
 
-## 5. Interactive Experiments to Try
+### 6.2 Signal Model
 
-Become an expert by trying these quick laboratory experiments:
+$$\mathbf{x}[n] = s[n]\,\mathbf{d} + \mathbf{i}[n] + \mathbf{v}[n], \qquad y[n] = \mathbf{w}^H \mathbf{x}[n]$$
 
-### Experiment A: The Runaway Filter (Instability)
-*   **Goal:** See what happens when the learning rate is too high.
-*   **Setup:** Load `ecg100`, click **Generate**, then apply **LMS-AR**.
-*   **Action:** Keep increasing the **Step Size ($\mu$)** (try `0.05` or `0.1`).
-*   **Observation:** The filter becomes unstable! The predicted line will fly off the screen, and the MSE learning curve will shoot up to infinity. This is **divergence**—the step size is too large for the filter to walk down the error hill safely.
+### 6.3 Optimisation Problem
 
-### Experiment B: The Sharper Shadow
-*   **Goal:** Observe how adding more sensors makes the spatial filter more powerful.
-*   **Setup:** Select **MVDR Beamformer**. Set Desired Angle to `30°` and Interference to `-45°`.
-*   **Action:** 
-    1. Run it with **Array Size (M) = 4** and click **Apply**. Inspect the **Beampattern** chart—the "null" at `-45°` is shallow and wide.
-    2. Change **Array Size (M) = 12** and click **Apply** again.
-*   **Observation:** The null at `-45°` is now a sharp, deep needle-like spike! More sensors give the filter the physical resolution to carve out extremely precise blind spots.
+$$\min_{\mathbf{w}} \;\mathbf{w}^H \mathbf{R}\,\mathbf{w} \quad \text{subject to} \quad \mathbf{w}^H \mathbf{d} = 1$$
 
----
+### 6.4 Closed-Form Solution
 
-## 6. The Science & Mathematics (For Advanced Learners)
+$$\mathbf{w}_{\mathrm{MVDR}} = \frac{\mathbf{R}^{-1}\mathbf{d}}{\mathbf{d}^H \mathbf{R}^{-1}\mathbf{d}}$$
 
-If you are studying advanced engineering or mathematics, here are the actual equations driving the simulator behind the scenes:
+### 6.5 Covariance Estimation & Diagonal Loading
 
-### 6.1 LMS Coefficient Update Equation
-At each sample index $n$, the filter estimates the next sample $\hat{y}(n)$ using the past $P$ samples:
-$$\hat{y}(n) = \sum_{k=1}^{P} w_k(n)\, x_k(n)$$
-Where $x_k(n) = u(n-k)$ represents the previous clean samples plus Monte Carlo perturbation noise.
+$$\hat{\mathbf{R}} = \frac{1}{N}\sum_{n=1}^{N} \mathbf{x}[n]\mathbf{x}^H[n], \qquad \hat{\mathbf{R}}_{\mathrm{DL}} = \hat{\mathbf{R}} + \delta \mathbf{I}$$
 
-The instantaneous prediction error is:
-$$e(n) = u(n) - \hat{y}(n)$$
+Diagonal loading $\delta > 0$ improves numerical stability when snapshot count is limited.
 
-The filter updates its weight vector $\mathbf{w}$ using the Least Mean Squares (LMS) update rule:
-$$\mathbf{w}(n+1) = \mathbf{w}(n) + \mu\, e(n)\, \mathbf{x}(n)$$
-where $\mu$ is the learning step size.
+**Simulator parameters:**
+
+- **Number of Sensors (M)** — array size (2–16)
+- **Desired Angle $\theta_s$** — look direction of ECG signal (−90° to 90°)
+- **Interferer Angle $\theta_i$** — direction of main interference
+- **Diagonal Loading δ** — regularisation factor (0–0.1)
+
+**Outputs:** filtered waveform, beampattern, covariance heatmap, input/output SNR.
+
+### 6.6 LMS vs. MVDR
+
+| Criterion | LMS | MVDR |
+| :--- | :--- | :--- |
+| Approach | Stochastic gradient (iterative) | Constrained optimisation (analytical) |
+| Optimality | Converges to Wiener solution | Statistically optimal (maximises SINR) |
+| Desired signal | No explicit protection | Guaranteed distortionless response |
+| Cost per step | $O(M)$ | $O(M^3)$ for matrix inversion |
+| Adaptation | Continuous, sample-by-sample | Batch / snapshot-based |
 
 ---
 
-### 6.2 The Wiener-Hopf Optimum (The Ideal Reference)
-The theoretical perfect solution for the autoregressive coefficients, representing the best possible fit to the signal's autocorrelation, is given by the **Wiener-Hopf equation**:
-$$\mathbf{R}\,\mathbf{w}_{\mathrm{opt}} = \mathbf{p}$$
-Where:
-*   $\mathbf{R}$ is the Toeplitz autocorrelation matrix of the signal $u(n)$.
-*   $\mathbf{p}$ is the cross-correlation vector between the past samples and the desired current sample.
+## 7. Monte Carlo Simulation
 
-The simulator estimates the sample autocorrelation function $\hat{r}(k)$ as:
-$$\hat{r}(k) = \frac{1}{N-k} \sum_{i=k}^{N-1} u(i)\, u(i-k)$$
-And solves the system of linear equations in real-time to plot the dashed reference lines in the convergence chart.
+### 7.1 Concept
+
+A single simulation run is one realisation of a stochastic process. **Monte Carlo** repeats the experiment $N_{\mathrm{MC}}$ times with independent noise sequences and averages the results (Law of Large Numbers).
+
+### 7.2 Ensemble MSE
+
+Instantaneous squared error in trial $k$:
+
+$$\xi_k[n] = e_k^2[n] = (d_k[n] - \hat{y}_k[n])^2$$
+
+Ensemble-averaged MSE:
+
+$$J_{\mathrm{MC}}[n] = \frac{1}{N_{\mathrm{MC}}} \sum_{k=1}^{N_{\mathrm{MC}}} e_k^2[n] \;\rightarrow\; \mathbb{E}\{e^2[n]\} = J[n]$$
+
+### 7.3 Performance Metrics
+
+| Metric | Expression / meaning |
+| :--- | :--- |
+| Convergence time | Iterations to reach within ~5% of steady-state MSE |
+| Steady-state MSE | $J_{ss} \approx J_{\min}/(1 - \mu \cdot \mathrm{tr}(\mathbf{R}))$ |
+| Misadjustment | $\mathcal{M} = (J_{ss} - J_{\min})/J_{\min} \approx \mu \cdot \mathrm{tr}(\mathbf{R})$ |
+| SNR improvement | $10\log_{10}(\sigma_{\mathrm{signal}}^2 / J_{ss}) - \mathrm{SNR}_{\mathrm{in}}$ (dB) |
+| 95% confidence interval | $J_{\mathrm{MC}}[n] \pm 1.96 \cdot \mathrm{SE}[n]$ |
+
+In the simulator, open **Monte Carlo Runs & Statistical Analysis** after applying a filter. The explainer widget shows individual trials, running average, and confidence bands with the governing formulas.
 
 ---
 
-### 6.3 MVDR Beamforming Mathematics
-For an $M$-sensor Uniform Linear Array (ULA), the steering vector $\mathbf{a}(\theta)$ representing a signal arriving from angle $\theta$ is:
-$$a_m(\theta) = e^{j m \pi \sin\theta}, \quad m = 0, 1, \dots, M-1$$
+## 8. Unified Framework & Signal Processing Pipeline
 
-The sample covariance matrix $\hat{\mathbf{R}}$ is estimated using $K$ snapshots:
-$$\hat{\mathbf{R}} = \frac{1}{K} \sum_{k=1}^{K} \mathbf{x}(k)\mathbf{x}^T(k)$$
-*(To prevent numerical errors, a small diagonal loading value of $0.01$ is added to the diagonal).*
+The theory document (§7) connects AR modelling, LMS, MVDR, and Monte Carlo into one pipeline. The simulator implements this as follows:
 
-The optimal weight vector $\mathbf{w}_{\mathrm{MVDR}}$ that minimizes output interference power while maintaining a distortionless gain of $1$ (0 dB) in the desired look-direction $\theta_s$ is:
-$$\mathbf{w}_{\mathrm{MVDR}} = \frac{\hat{\mathbf{R}}^{-1} \mathbf{a}(\theta_s)}{\mathbf{a}^T(\theta_s)\, \hat{\mathbf{R}}^{-1}\, \mathbf{a}(\theta_s)}$$
+| Stage | Operation | Mathematical core | Simulator output |
+| :---: | :--- | :--- | :--- |
+| 1 | Signal model | AR(p): $x[n] = \mathbf{a}^T \mathbf{x}_{n-1} + w[n]$ | Clean ECG waveform |
+| 2 | Noise addition | $d[n] = x[n] + \mathrm{noise}[n]$ | Noisy ECG chart |
+| 3 | LMS filter | $\mathbf{w}[n+1] = \mathbf{w}[n] + 2\mu e[n]\mathbf{x}[n]$ | Filtered ECG, comparison, weight evolution |
+| 4 | MVDR | $\mathbf{w} = \mathbf{R}^{-1}\mathbf{d}/(\mathbf{d}^H\mathbf{R}^{-1}\mathbf{d})$ | Beam pattern, covariance, SNR |
+| 5 | Monte Carlo | $J[n] = (1/N_{\mathrm{MC}})\sum e_k^2[n]$ | Learning curve, confidence bands |
+| 6 | PSD analysis | FFT of Hanning-windowed signal | Unfiltered vs. filtered spectra |
 
 ---
 
-## 7. Project Directory & File Structure
+## 9. Step-by-Step Simulation Guide
 
-Here is how the project files are laid out. Knowing this helps you understand where the computations happen:
+### 9.1 Load an ECG Signal
+
+1. Open **Signal Setup** (right panel).
+2. Select a dataset (`ecg100`, `ecg200`, `ecg300`) or **Upload your own (CSV/TXT)**.
+3. Set **Duration (seconds)** with the slider.
+4. Click **Generate ECG Signal**. The clean waveform appears on the left.
+
+### 9.2 Add Noise
+
+1. In **Noise Configuration**, enable one or more types:
+   - **Baseline Wander** — slow drift from breathing/movement
+   - **Powerline Hum (50 Hz)** — electrical interference
+   - **EMG Noise** — muscle artefact
+2. Click **Add Noise to Signal**.
+
+### 9.3 LMS Adaptive Filter
+
+1. In **Algorithm Setup**, select **LMS Adaptive Filter**.
+2. Set **Filter Order (M)** (start with 32) and **Step size μ** (start with 0.01 or smaller).
+3. Click **Apply Filter**.
+4. Review results: filtered ECG, noisy vs. filtered comparison, adaptive weight evolution, Monte Carlo panel.
+5. Click **Compute PSD** to view unfiltered and filtered spectra side by side.
+
+### 9.4 MVDR Beamformer
+
+1. Select **MVDR Beamformer** in the algorithm dropdown.
+2. Configure **Number of Sensors**, **Desired Angle $\theta_s$**, **Interferer Angle $\theta_i$**, and **Diagonal Loading δ**.
+3. Click **Apply Filter** (requires noise to be added first).
+4. Review: MVDR filtered output, beampattern, covariance heatmap, SNR metrics.
+5. Click **Compute PSD** for frequency-domain verification.
+
+### 9.5 LMS vs MVDR Comparison
+
+1. Scroll to **LMS vs MVDR Comparison** (below Algorithm Setup).
+2. Set LMS and MVDR parameters independently.
+3. Click **Run LMS vs MVDR Comparison** for side-by-side results on the same noisy ECG.
+
+### 9.6 Monte Carlo Analysis
+
+1. After **Apply Filter** (LMS or MVDR path), expand **Monte Carlo Runs & Statistical Analysis** on the left.
+2. Set number of runs (default 50; theory recommends 100–500 for smooth curves).
+3. Click **Run Monte Carlo** and explore the explainer tabs: individual trials, running average, confidence bands.
+
+---
+
+## 10. Interactive Experiments
+
+### Experiment A — LMS Divergence (μ too large)
+
+- Load `ecg100`, add noise, select LMS.
+- Increase **Step size μ** to 0.05 or higher and click **Apply Filter**.
+- Observe unstable output and rising error — the filter diverges when $\mu > 1/\lambda_{\max}$.
+
+### Experiment B — MVDR Null Depth vs. Array Size
+
+- Select MVDR; set $\theta_s = 0°$, $\theta_i = 30°$.
+- Run with **M = 4** sensors, then **M = 12**.
+- Compare beampatterns: more sensors yield sharper interference nulls.
+
+### Experiment C — PSD Verification of Powerline Removal
+
+- Add **Powerline Hum (50 Hz)** only.
+- Apply LMS or MVDR, then **Compute PSD**.
+- Confirm the 50 Hz spike in the unfiltered spectrum is attenuated in the filtered spectrum.
+
+### Experiment D — Monte Carlo Confidence Bands
+
+- Apply LMS with μ = 0.01, run Monte Carlo with $N_{\mathrm{MC}} = 50$, then 200.
+- Observe narrower confidence bands with more trials (smaller standard error).
+
+---
+
+## 11. Summary of Key Equations
+
+| Name | Expression |
+| :--- | :--- |
+| AR(p) model | $x[n] = \sum_{k=1}^{p} a_k x[n-k] + w[n]$ |
+| Yule–Walker | $\mathbf{R}\mathbf{a} = -\mathbf{r}$, $\mathbf{a} = -\mathbf{R}^{-1}\mathbf{r}$ |
+| AR PSD | $S_x = \sigma_w^2 / \|A(e^{j\omega})\|^2$ |
+| Wiener solution | $\mathbf{w}_{\mathrm{opt}} = \mathbf{R}^{-1}\mathbf{p}$ |
+| LMS output | $y[n] = \mathbf{w}^T[n]\mathbf{x}[n]$ |
+| LMS error | $e[n] = d[n] - y[n]$ |
+| LMS update | $\mathbf{w}[n+1] = \mathbf{w}[n] + 2\mu e[n]\mathbf{x}[n]$ |
+| LMS stability | $0 < \mu < 1/\lambda_{\max}$ |
+| Misadjustment | $\mathcal{M} = \mu \cdot \mathrm{tr}(\mathbf{R})$ |
+| MVDR weights | $\mathbf{w} = \mathbf{R}^{-1}\mathbf{d} / (\mathbf{d}^H \mathbf{R}^{-1}\mathbf{d})$ |
+| Covariance estimate | $\hat{\mathbf{R}} = (1/N)\sum \mathbf{x}[n]\mathbf{x}^H[n]$ |
+| Monte Carlo MSE | $J[n] = (1/N_{\mathrm{MC}})\sum_k e_k^2[n]$ |
+
+---
+
+## 12. References
+
+[1] S. Haykin, *Adaptive Filter Theory*, 4th ed. Prentice Hall, 2002.
+
+[2] J. G. Proakis and D. G. Manolakis, *Digital Signal Processing: Principles, Algorithms, and Applications*, 4th ed. Prentice Hall, 2007.
+
+[3] S. M. Kay, *Modern Spectral Estimation: Theory and Application*. Prentice Hall, 1988.
+
+[4] J. P. Burg, "Maximum entropy spectral analysis," in *Proc. 37th Meeting Soc. Exploration Geophysicists*, 1967.
+
+[5] B. Widrow and S. D. Stearns, *Adaptive Signal Processing*. Prentice Hall, 1985.
+
+[6] J. Capon, "High-resolution frequency-wavenumber spectrum analysis," *Proc. IEEE*, vol. 57, no. 8, pp. 1408–1418, Aug. 1969.
+
+[7] A. H. Sayed, *Fundamentals of Adaptive Filtering*. Wiley-IEEE Press, 2003.
+
+[8] H. L. Van Trees, *Optimum Array Processing*. Wiley-Interscience, 2002.
+
+[9] P. Stoica and R. Moses, *Spectral Analysis of Signals*. Prentice Hall, 2005.
+
+[10] L. C. Godara, "Application of antenna arrays to mobile communications, Part II," *Proc. IEEE*, vol. 85, no. 8, pp. 1195–1245, Aug. 1997.
+
+---
+
+## 13. Project Structure
 
 ```
 ASP_Simulation_6/
-├── public/                     # Static ECG datasets (.csv files)
+├── public/                          # Static ECG datasets
 │   ├── ecg100.csv
 │   ├── ecg200.csv
 │   └── ecg300.csv
 ├── src/
-│   ├── main.jsx                # Web App entry point
+│   ├── main.jsx                     # Application entry point
+│   ├── guideSteps.js                # Guided tour steps
 │   ├── context/
-│   │   ├── SimulationContext.jsx    # Global lab state (loaded signals, active settings)
-│   │   └── CompareRunsContext.jsx   # Manages pinned charts for comparison
+│   │   └── SimulationContext.jsx    # Global simulation state
 │   ├── components/
-│   │   ├── rightPanel/         # Interactive controls (sliders, checkboxes, select menus)
-│   │   ├── leftPanel/          # Chart dashboards
-│   │   ├── graph/              # Renders the time-domain, MSE, and Beampattern plots
-│   │   ├── instruction/        # Interactive help menu & guidelines
-│   │   └── guidedModal/        # Pop-up tutorial walkthrough for first-time users
+│   │   ├── rightPanel/              # Controls (signal, noise, algorithms)
+│   │   ├── leftPanel/               # Result charts and analysis panels
+│   │   ├── graph/                   # ECG, PSD, MVDR, Monte Carlo charts
+│   │   ├── educational/             # Weight evolution, dataset info
+│   │   ├── instruction/             # Lab instructions panel
+│   │   ├── guidedModal/             # First-run guided tour
+│   │   ├── noise/                   # Noise type cards and previews
+│   │   └── MonteCarloExplainer.jsx  # Monte Carlo theory & visualisation
 │   └── utils/
-│       ├── algorithms.js       # Core math engines (LMS-AR and MVDR calculations)
-│       ├── ecgDatasetCache.js  # Preloads CSV files so they load instantly
-│       ├── ecgDisplay.js       # Decimates/optimizes charts so they run smoothly
-│       ├── addNoise.js         # Adds baseline wander, 50Hz hum, and EMG static
-│       └── psd.js              # Computes FFT frequency spectrum
-└── vite.config.js              # Bundler & project configuration
+│       ├── filters.js               # LMS adaptive filter engine
+│       ├── spatialMvdr.js           # Spatial ULA MVDR beamformer
+│       ├── psd.js                   # Hanning-window FFT PSD
+│       ├── monteCarloEcg.js         # Monte Carlo LMS experiments
+│       ├── addNoise.js              # Baseline, powerline, EMG noise
+│       ├── arModel.js               # AR modelling utilities
+│       ├── pipeline.js              # Full 5-stage theory pipeline
+│       └── ecgDatasets.js           # Dataset paths and upload parsing
+├── package.json
+└── vite.config.js
 ```
 
 ---
 
-## 8. Installation and Local Usage
+## 14. Installation and Local Usage
 
 ### Prerequisites
-To run this laboratory on your computer, you need to install [Node.js](https://nodejs.org/) (version 18 or newer recommended).
 
-### 1. Download and Install Dependencies
-Open your command terminal, navigate to the folder, and run:
+[Node.js](https://nodejs.org/) version 18 or newer.
+
+### Install dependencies
+
 ```bash
 cd ASP_Simulation_6
 npm install
 ```
 
-### 2. Launch the Development Server
-Start the interactive application locally:
+### Run development server
+
 ```bash
 npm run dev
 ```
-Open the URL printed in the terminal (usually `http://localhost:5173/` or `http://localhost:5173/ASP_Simulation_6/`) in your web browser.
 
-### 3. Production Build (To Deploy)
-To build a highly optimized version that can be uploaded to a website server:
+Open the URL shown in the terminal (typically `http://localhost:5173/`).
+
+### Production build
+
 ```bash
 npm run build
 npm run preview
@@ -336,4 +463,4 @@ npm run preview
 
 ---
 
-*© Virtual Labs, IIT Roorkee — Experiment 3(a): Adaptive Signal Processing Simulation. Developed for educational purposes.*
+*© Virtual Labs, IIT Roorkee — Adaptive Signal Processing Simulation. Developed for B.Tech / M.Tech laboratory instruction.*

@@ -1,108 +1,71 @@
-import Fili from "fili";
-
-export function buildIirCoeffs(cfg) {
-  const calc = new Fili.CalcCascades();
-  // console.log("Available Filters:", calc.available());
-  const base = {
-    order: cfg.order,
-    characteristic: "butterworth",
-    Fs: cfg.Fs,
-    preGain: !!cfg.preGain,
-  };
-  if (cfg.filterType === "lowpass") {
-    return calc.lowpass({ ...base, Fc: cfg.Fc });
-  }
-  if (cfg.filterType === "highpass") {
-    return calc.highpass({ ...base, Fc: cfg.Fc });
-  }
-  if (cfg.filterType === "bandpass") {
-    //const BW = Math.max(0, (cfg.F2 ?? 0) - (cfg.F1 ?? 0));
-    const BW = Math.max(1e-6, (cfg.F2 ?? 0) - (cfg.F1 ?? 0));
-
-    const Fc = cfg.Fc ?? (cfg.F1 + cfg.F2) / 2;
-    return calc.bandpass({ ...base, Fc, BW });
-  }
-  if (cfg.filterType === "bandstop") {
-    //const BW = Math.max(0, (cfg.F2 ?? 0) - (cfg.F1 ?? 0));
-    const BW = Math.max(1e-6, (cfg.F2 ?? 0) - (cfg.F1 ?? 0));
-
-    const Fc = cfg.Fc ?? (cfg.F1 + cfg.F2) / 2;
-    return calc.bandstop({ ...base, Fc, BW });
-  }
-  return null;
+function clampNumber(n, min, max) {
+  if (!Number.isFinite(n)) return min;
+  return Math.min(max, Math.max(min, n));
 }
 
-export function buildFirCoeffs(cfg) {
-  const firCalc = new Fili.FirCoeffs();
-  if (cfg.windowMode === "KaiserBessel") {
-    if (cfg.characteristic === "FIR" && cfg.order < 3) {
-      cfg.order = 3;
+export function calculateMSE(reference, filtered) {
+  if (!Array.isArray(reference) || !Array.isArray(filtered)) return 0;
+  const n = Math.min(reference.length, filtered.length);
+  if (n === 0) return 0;
+  let acc = 0;
+  for (let i = 0; i < n; i++) {
+    const e = reference[i] - filtered[i];
+    acc += e * e;
+  }
+  return acc / n;
+}
+
+export function filterSignalLMS(noisy, reference, options = {}) {
+  const { filterOrder, stepSize, returnDiagnostics = false } = options;
+  if (!Array.isArray(noisy) || noisy.length === 0) {
+    return returnDiagnostics ? { Yfiltered: [], diagnostics: {} } : [];
+  }
+  if (!Array.isArray(reference) || reference.length === 0) {
+    return returnDiagnostics ? { Yfiltered: [], diagnostics: {} } : [];
+  }
+
+  const N = Math.min(noisy.length, reference.length);
+  const M = Math.max(1, Math.min(256, Math.floor(filterOrder ?? 1)));
+
+  const p_u = noisy.reduce((acc, v) => acc + v * v, 0) / noisy.length;
+  const requestedMu = Number(stepSize);
+  const mu = Number.isFinite(requestedMu) && requestedMu > 0 ? requestedMu : 0.01;
+
+  const w = new Array(M).fill(0);
+  const yFiltered = new Array(N).fill(0);
+  const yNoise = returnDiagnostics ? new Array(N).fill(0) : null;
+  const weightsHistory = returnDiagnostics ? [] : null;
+
+  for (let n = 0; n < N; n++) {
+    const xVec = new Array(M);
+    for (let k = 0; k < M; k++) {
+      const idx = n - k;
+      xVec[k] = idx >= 0 ? noisy[idx] : 0;
     }
-    let order = cfg.order;
-    if (order % 2 === 0) order += 1;
-    return firCalc.kbFilter({
-      order: order,
-      Fs: cfg.Fs,
-      Fa: cfg.Fa,
-      Fb: cfg.Fb,
-      Att: cfg.Att,
-    });
-  }
-  if (cfg.filterType === "lowpass") {
-    return firCalc.lowpass({ order: cfg.order, Fs: cfg.Fs, Fc: cfg.Fc });
-  }
-  if (cfg.filterType === "highpass") {
-    return firCalc.highpass({ order: cfg.order, Fs: cfg.Fs, Fc: cfg.Fc });
-  }
-  if (cfg.filterType === "bandpass") {
-    return firCalc.bandpass({
-      order: cfg.order,
-      Fs: cfg.Fs,
-      F1: cfg.F1,
-      F2: cfg.F2,
-    });
-  }
-  if (cfg.filterType === "bandstop") {
-    return firCalc.bandstop({
-      order: cfg.order,
-      Fs: cfg.Fs,
-      F1: cfg.F1,
-      F2: cfg.F2,
-    });
-  }
-  return null;
-}
 
-export function filterSignalFili(signal, cfg) {
-  if (!Array.isArray(signal) || !signal.length) return [];
-  if (cfg.characteristic === "IIR") {
-    const coeffs = buildIirCoeffs(cfg);
-    if (!coeffs) return signal;
-    //console.log("IIR Coeffs:", coeffs);
-    // const b = [];
-    // const a = [];
+    let y = 0;
+    for (let k = 0; k < M; k++) y += w[k] * xVec[k];
 
-    // coeffs.forEach((stage) => {
-    //   b.push(...stage.b);
-    //   a.push(...stage.a);
-    // });
-    // const { freq, mag } = computeFrequencyResponse(b, a, cfg.Fs);
-    // setFreqResponse({ freq, mag });
+    const d = reference[n];
+    const e = d - y;
+    yFiltered[n] = e;
 
-    const filter = new Fili.IirFilter(coeffs);
-    return filter.multiStep(signal);
+    if (returnDiagnostics) {
+      yNoise[n] = y;
+      weightsHistory.push(w.slice());
+    }
+
+    const gain = mu * e;
+    for (let k = 0; k < M; k++) w[k] += gain * xVec[k];
   }
-  if (cfg.characteristic === "FIR") {
-    const coeffs = buildFirCoeffs(cfg);
 
-    // if (!coeffs) return signal;
-    // const b = coeffs;
-    // const a = [1];
-
-    // const { freq, mag } = computeFrequencyResponse(b, a, cfg.Fs);
-    // setFreqResponse({ freq, mag });
-    const filter = new Fili.FirFilter(coeffs);
-    return filter.multiStep(signal);
+  if (returnDiagnostics) {
+    return {
+      Yfiltered: yFiltered,
+      yNoise,
+      diagnostics: { weightsHistory, signalPower: p_u, muUsed: mu },
+    };
   }
-  return signal;
+
+  return yFiltered;
 }
