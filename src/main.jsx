@@ -4,14 +4,11 @@ import './index.css'
 import './styles/dashboard.css'
 import App from './App.jsx'
 import { SimulationProvider } from './context/SimulationContext.jsx'
-import { CompareRunsProvider } from './context/CompareRunsContext.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <SimulationProvider>
-      <CompareRunsProvider>
-        <App />
-      </CompareRunsProvider>
+      <App />
     </SimulationProvider>
   </StrictMode>,
 )

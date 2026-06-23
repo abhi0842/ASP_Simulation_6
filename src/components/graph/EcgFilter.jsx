@@ -2,7 +2,7 @@ import { useMemo, useContext, useEffect } from "react";
 import { SimulationContext } from "../../context/SimulationContext";
 import styles from "./ecgFilter.module.css";
 import { Line } from "react-chartjs-2";
-import { filterSignalFili } from "../../utils/filters";
+import { filterSignalLMS, calculateMSE } from "../../utils/filters";
 import {
   Chart as ChartJS,
   LineElement,
@@ -13,146 +13,110 @@ import {
   Legend,
 } from "chart.js";
 
-ChartJS.register(
-  LineElement,
-  PointElement,
-  LinearScale,
-  CategoryScale,
-  Tooltip,
-  Legend
-);
-
-function resampleForDisplay(data, fsOriginal, fsUser) {
-  const step = fsOriginal / fsUser;
-  if (step <= 1) return data;
-  const out = [];
-  for (let i = 0; i < data.length; i += step) {
-    out.push(data[Math.floor(i)]);
-  }
-  return out;
-}
-function inferFs(dataAll) {
-  if (dataAll.length < 2) return 500;
-  const dt = dataAll[1].x - dataAll[0].x;
-  if (dt > 0) return 1 / dt;
-  return 500;
-}
+ChartJS.register(LineElement, PointElement, LinearScale, CategoryScale, Tooltip, Legend);
 
 export const EcgFilter = () => {
-  const { time, originalFs, config, filteredECG, rawSamples, colors, selectedChannels, setFilteredSamples } =
-    useContext(SimulationContext);
+  const {
+    filteredECG,
+    noisySamples,
+    cleanSignal,
+    appliedFilterOrderM,
+    appliedStepSizeMu,
+    setFilteredSamples,
+    setDiagnostics,
+  } = useContext(SimulationContext);
 
-  const data = useMemo(() => {
-    if (!rawSamples.length || !filteredECG) return [];
+  const filterResult = useMemo(() => {
+    if (
+      !filteredECG ||
+      appliedFilterOrderM == null ||
+      appliedStepSizeMu == null ||
+      !noisySamples.length ||
+      !cleanSignal.length
+    ) {
+      return null;
+    }
 
-    const fsOriginal = inferFs(rawSamples);
-    const displayData = resampleForDisplay(
-      rawSamples,
-      fsOriginal,
-      originalFs
-    ).filter((p) => p.x <= time);
+    const noisyECG = noisySamples.map((p) => p.y);
+    const cleanGroundTruth = cleanSignal.slice(0, noisyECG.length);
+    const noiseReference = noisyECG.map((v, i) => v - (cleanGroundTruth[i] || 0));
 
-    const cfg = { ...config, Fs: Number(originalFs) };
-
-    // Filter each channel
-    return selectedChannels.map((ch) => {
-      const y = displayData.map((p) => p[ch]);
-      const yFiltered = filterSignalFili(y, cfg);
-
-      return displayData.map((p, i) => ({
-        x: p.x,
-        y: yFiltered[i],
-      }));
+    const result = filterSignalLMS(noiseReference, noisyECG, {
+      filterOrder: appliedFilterOrderM,
+      stepSize: appliedStepSizeMu,
+      returnDiagnostics: true,
     });
-  }, [time, originalFs, config, filteredECG, rawSamples, selectedChannels]);
+
+    const cleanedSignal = result.Yfiltered;
+    const mse = calculateMSE(cleanGroundTruth, cleanedSignal);
+    console.info(
+      `LMS filter applied — M=${appliedFilterOrderM}, μ=${appliedStepSizeMu}, MSE=${mse.toFixed(6)}`
+    );
+
+    return {
+      filteredData: noisySamples.map((p, i) => ({ x: p.x, y: cleanedSignal[i] ?? 0 })),
+      diagnostics: {
+        ...result.diagnostics,
+        algorithm: "LMS",
+      },
+    };
+  }, [filteredECG, noisySamples, cleanSignal, appliedFilterOrderM, appliedStepSizeMu]);
 
   useEffect(() => {
-    //console.log("data after filter", data); 
-    setFilteredSamples(data);
-  }, [time, originalFs, config, filteredECG, rawSamples, data, setFilteredSamples]);
+    if (!filterResult) {
+      setFilteredSamples([]);
+      setDiagnostics(null);
+      return;
+    }
+    setFilteredSamples(filterResult.filteredData);
+    setDiagnostics(filterResult.diagnostics);
+  }, [filterResult, setFilteredSamples, setDiagnostics]);
 
-const datasets = selectedChannels.map((ch, i) => ({
-  label: ch,
-  data: data[i] || [],
-  borderColor: colors[i % colors.length],
-  borderWidth: 1,
-  pointRadius: 0,
-  tension: 0,
-}));
+  const filteredData = filterResult?.filteredData ?? [];
 
-
-  const chartData = { datasets };
-
-  //console.log(chartData);
-  // const chartData = {
-  //   datasets: [
-  //     {
-  //       label: "Filtered EEG",
-  //       data: data,
-  //       borderColor: "blue",
-  //       borderWidth: 1,
-  //       pointRadius: 0,
-  //       tension: 0,
-  //     },
-  //   ],
-  // };
+  const chartData = {
+    datasets: [
+      {
+        label: "Filtered ECG",
+        data: filteredData,
+        borderColor: "#2ecc71",
+        borderWidth: 1.5,
+        pointRadius: 0,
+        tension: 0,
+      },
+    ],
+  };
 
   const options = {
     responsive: true,
-    animation: true,
+    maintainAspectRatio: false,
+    animation: false,
     parsing: false,
-    plugins: {
-      legend: {
-        display: true,
-      },
-    },
+    plugins: { legend: { display: true } },
     scales: {
       x: {
         type: "linear",
-        title: {
-          display: true,
-          text: "Time (s)",
-          font: {
-            size: 13, // ← X-axis label font size
-            weight: "bold",
-          },
-        },
-        ticks: {
-          font: {
-            size: 13,
-          },
-        },
+        title: { display: true, text: "Time (s)", font: { size: 13, weight: "bold" } },
+        ticks: { font: { size: 13 } },
       },
       y: {
-        title: {
-          display: true,
-          text: "Amplitude (mV)",
-          font: {
-            size: 13,
-            weight: "bold",
-          },
-        },
-        ticks: {
-          font: {
-            size: 12,
-          },
-        },
+        title: { display: true, text: "Amplitude (mV)", font: { size: 13, weight: "bold" } },
+        ticks: { font: { size: 12 } },
       },
     },
   };
 
+  if (!filteredECG) return null;
+
   return (
     <div className={styles.signalContainer}>
       <h3>
-        ECG Signal (Filtered) <span> Filter Used : </span>
-        <span>
-          {config.characteristic === "FIR"
-            ? `Window based FIR - ${config.windowMode} - ${config.filterType}`
-            : `Butterworth IIR - ${config.filterType}`}
-        </span>
+        ECG Signal (Filtered){" "}
+        <span>(LMS Adaptive Filter — μ={appliedStepSizeMu} — M={appliedFilterOrderM})</span>
       </h3>
-
-      <Line data={chartData} options={options} />
+      <div className="dashboard-chart-shell">
+        <Line data={chartData} options={options} />
+      </div>
     </div>
   );
 };

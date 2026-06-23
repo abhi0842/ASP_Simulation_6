@@ -1,0 +1,46 @@
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+}
+
+.snrRow {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.snrCard {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 14px 16px;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: center;
+}
+
+.snrLabel {
+  font-size: 0.8rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.snrCard strong {
+  font-size: 1.15rem;
+  color: #1D7480;
+}
+
+.beamChartShell {
+  height: 280px;
+  min-width: 0;
+}
+
+@media (max-width: 768px) {
+  .snrRow {
+    grid-template-columns: 1fr;
+  }
+}

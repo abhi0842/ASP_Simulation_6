@@ -18,7 +18,7 @@ export function computePSD(signal, fs) {
   for (let i = 0; i < half; i++) {
     freq.push((i * fs) / N);
     const onesidedFactor = i === 0 || i === half - 1 ? 1 : 2;
-    psd.push((onesidedFactor * (magnitude[i] * magnitude[i])) / (windowCorrect * fs));
+    psd.push(onesidedFactor * (magnitude[i] * magnitude[i]) / (windowCorrect * fs));
   }
 
   return { freqs: freq, psd };

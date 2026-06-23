@@ -1,0 +1,81 @@
+.container {
+  width: 100%;
+  min-width: 0;
+  padding: 16px;
+  background: #fff;
+  border-radius: 10px;
+  border: 1px solid #dadada;
+  box-shadow: 0 2px 8px rgba(94, 94, 94, 0.12);
+}
+
+.container h3 {
+  color: rgb(29 116 128);
+  font-size: 1rem;
+  margin-bottom: 12px;
+}
+
+.container h4 {
+  font-size: 0.85rem;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.metricsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.metricCard {
+  background: #f0f9fb;
+  border: 1px solid #b2d8de;
+  border-radius: 8px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+}
+
+.metricCard span {
+  color: #1D7480;
+  font-weight: 600;
+}
+
+.metricCard strong {
+  font-size: 13px;
+}
+
+.metricCard small {
+  color: #666;
+  font-size: 10px;
+}
+
+.chartBlock {
+  margin-bottom: 20px;
+}
+
+.tableWrap {
+  margin-top: 12px;
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+
+.table th,
+.table td {
+  border: 1px solid #ddd;
+  padding: 6px 8px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.table th {
+  background: #e8f4f8;
+  color: #1D7480;
+}

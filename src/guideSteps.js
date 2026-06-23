@@ -43,44 +43,32 @@ export const guideSteps = [
   {
     title: "5. Select Algorithm",
     content:
-      "Choose LMS-AR Process (ECG prediction) or MVDR Beamformer (ECG denoising).",
+      "Choose LMS Adaptive Filter and set Filter Order (M) and step size μ.",
     highlight: "algorithmSelector",
     requiredAction: "SELECT_ALGO",
     preferredPlacement: "left",
     isDropdown: true,
   },
   {
-    title: "6. Tune Parameters",
+    title: "6. Apply Filter",
     content:
-      "Adjust algorithm parameters using the sliders. Each slider has a hint explaining its effect.",
-    highlight: "algoSetup",
+      "Click Apply Filter after adding noise. The filtered ECG appears in green below the noisy signal.",
+    highlight: "applyFilterBtn",
+    requiredAction: "APPLY_FILTER",
     preferredPlacement: "left",
   },
   {
-    title: "7. Apply Algorithm",
-    content: "Click 'Apply Algorithm' to run the selected algorithm on the real ECG data.",
-    highlight: "applyAlgoBtn",
-    requiredAction: "RUN_ALGORITHM",
-    preferredPlacement: "left",
-  },
-  {
-    title: "8. Compute PSD",
+    title: "7. Compute PSD",
     content:
-      "Click 'Compute PSD' to view the Power Spectral Density of the noisy and processed ECG signals side by side.",
-    highlight: "psdPanel",
+      "Click Compute PSD to view unfiltered (noisy) and filtered power spectral density plots side by side.",
+    highlight: "computePsdBtn",
+    requiredAction: "COMPUTE_PSD",
     preferredPlacement: "left",
-  },
-  {
-    title: "9. Output Graphs",
-    content:
-      "Observe the output graphs — ECG prediction/denoising, MSE learning curve, and beampattern.",
-    highlight: "algoOutputSection",
-    preferredPlacement: "right",
   },
   {
     title: "Lab Completed",
     content:
-      "Excellent! You've explored AR prediction and MVDR beamforming on ECG. Experiment with different parameters and datasets.",
+      "Excellent! You've set up an ECG signal, added noise, and applied the LMS adaptive filter. Experiment with different datasets, noise types, and parameters.",
     preferredPlacement: "center",
   },
 ];

@@ -7,13 +7,6 @@ const DEFAULT_DATASET_ID = "ecg100";
 const DEFAULT_CSV_PATH = pathForDatasetId(DEFAULT_DATASET_ID);
 
 export const SimulationContext = createContext();
-export const LOBE_CHANNEL_MAP = {
-  Prefrontal: ["Fp1","Fp2"], Frontal: ["F3","F4","F7","F8","Fz"],
-  Central: ["C3","C4","Cz"], Temporal: ["T3","T4","T5","T6"],
-  Parietal: ["P3","P4","Pz"], Occipital: ["O1","O2"],
-  Reference: ["A1","A2"],
-  All: ["Fp1","Fp2","F3","Fz","F4","F7","F8","C3","Cz","C4","T3","T4","T5","T6","P3","Pz","P4","O1","O2","A1","A2"],
-};
 
 export const SimulationProvider = ({ children }) => {
   const [showInstruction, setShowInstruction] = useState(false);
@@ -27,30 +20,47 @@ export const SimulationProvider = ({ children }) => {
   const [applyNoiseTrigger, setApplyNoiseTrigger] = useState(false);
   const [filteredECG, setFilteredECG] = useState(false);
   const [applypsdTrigger, setApplypsdTrigger] = useState(false);
-  const [algoResults, setAlgoResults] = useState(null);
+  const [noisySamples, setNoisySamples] = useState([]);
+  const [cleanSignal, setCleanSignal] = useState([]);
+  const [filteredSamples, setFilteredSamples] = useState([]);
+  const [diagnostics, setDiagnostics] = useState(null);
   const [algorithmType, setAlgorithmType] = useState("AR Process");
-  const [noisyECG, setNoisyECG] = useState([]);
-  const [config, setConfig] = useState({ order:5, characteristic:"IIR", filterType:"bandpass", windowMode:"windowSync", preGain:false, Fs:500, Fc:10, F1:null, F2:null, Fa:null, Fb:null, Att:100 });
   const [rawSamples, setRawSamples] = useState([]);
   const [originalFs, setOriginalFs] = useState(500);
-  const [filteredSamples, setFilteredSamples] = useState([]);
-  const [freqResponse, setFreqResponse] = useState(null);
-  const [applyFreqTrigger, setApplyFreqTrigger] = useState(false);
   const [colors, setColors] = useState([]);
-  const [selectedLobe, setSelectedLobe] = useState("Frontal");
   const [selectedChannels, setSelectedChannels] = useState(["ECG_I"]);
-  const [noisySamples, setNoisySamples] = useState([]);
 
-  // Upload state
   const [signalType, setSignalType] = useState("ecg100");
   const [uploadedSignalData, setUploadedSignalData] = useState(null);
   const [uploadedSignalName, setUploadedSignalName] = useState("");
 
-  // Guide state
   const [guideActive, setGuideActive] = useState(false);
   const [step, setStep] = useState(0);
   const [actions, setActions] = useState({});
-  const [algorithmMeta, setAlgorithmMeta] = useState(null);
+
+  // Theory §3–§6 — algorithm parameters
+  const [arOrder, setArOrder] = useState(8);
+  const [arOrderMax, setArOrderMax] = useState(12);
+  const [stepSizeMu, setStepSizeMu] = useState(0.01);
+  const [filterOrderM, setFilterOrderM] = useState(32);
+  const [appliedStepSizeMu, setAppliedStepSizeMu] = useState(null);
+  const [appliedFilterOrderM, setAppliedFilterOrderM] = useState(null);
+  const [mvdrNumSensors, setMvdrNumSensors] = useState(4);
+  const [mvdrThetaS, setMvdrThetaS] = useState(0);
+  const [mvdrThetaI, setMvdrThetaI] = useState(30);
+  const [mvdrDiagLoad, setMvdrDiagLoad] = useState(0.01);
+  const [mvdrResults, setMvdrResults] = useState(null);
+  const [mvdrApplied, setMvdrApplied] = useState(false);
+  const [compareResults, setCompareResults] = useState(null);
+  const [compareApplied, setCompareApplied] = useState(false);
+  const [nMc, setNMc] = useState(100);
+  const [diagLoading, setDiagLoading] = useState(1e-3);
+  const [useAicOrder, setUseAicOrder] = useState(true);
+  const [pipelineResults, setPipelineResults] = useState(null);
+  const [pipelineRunning, setPipelineRunning] = useState(false);
+  const [pipelineProgress, setPipelineProgress] = useState(null);
+  const [voiceNarrationEnabled, setVoiceNarrationEnabled] = useState(false);
+  const [parameterHint, setParameterHint] = useState("");
 
   const steps = guideSteps;
 
@@ -83,7 +93,6 @@ export const SimulationProvider = ({ children }) => {
     setActions({});
   }, []);
 
-  // Parse uploaded CSV/TXT
   const parseUploadedText = (text) => {
     try {
       const result = Papa.parse(text, { skipEmptyLines: true });
@@ -120,7 +129,6 @@ export const SimulationProvider = ({ children }) => {
     return true;
   };
 
-  // Parse CSV from path and show ECG as soon as data is ready
   useEffect(() => {
     if (signalType === "upload") return;
 
@@ -191,25 +199,21 @@ export const SimulationProvider = ({ children }) => {
     <SimulationContext.Provider value={{
       showInstruction, setShowInstruction, buttonRef, instructionPanelRef,
       generateECG, setGenerateECG,
-      noisyECG, setNoisyECG,
-      filteredECG, setFilteredECG,
-      config, setConfig,
       time, setTime,
       csvFilePath, prevPathRef, setCsvFilePath,
       rawSamples, setRawSamples,
       originalFs,
       noise, setNoise,
       applyNoiseTrigger, setApplyNoiseTrigger,
-      freqResponse, setFreqResponse,
-      applyFreqTrigger, setApplyFreqTrigger,
-      colors, setColors,
-      selectedLobe, setSelectedLobe,
-      selectedChannels, setSelectedChannels,
+      filteredECG, setFilteredECG,
       applypsdTrigger, setApplypsdTrigger,
-      filteredSamples, setFilteredSamples,
-      algoResults, setAlgoResults,
-      algorithmType, setAlgorithmType,
       noisySamples, setNoisySamples,
+      cleanSignal, setCleanSignal,
+      filteredSamples, setFilteredSamples,
+      diagnostics, setDiagnostics,
+      colors, setColors,
+      selectedChannels, setSelectedChannels,
+      algorithmType, setAlgorithmType,
       signalType, setSignalType,
       uploadedSignalData, setUploadedSignalData,
       uploadedSignalName, setUploadedSignalName,
@@ -218,8 +222,29 @@ export const SimulationProvider = ({ children }) => {
       step, setStep,
       steps, currentStep, canProceed,
       markAction, resetGuide, startGuide, endGuide,
-      algorithmMeta, setAlgorithmMeta,
       actions,
+      arOrder, setArOrder,
+      arOrderMax, setArOrderMax,
+      stepSizeMu, setStepSizeMu,
+      filterOrderM, setFilterOrderM,
+      appliedStepSizeMu, setAppliedStepSizeMu,
+      appliedFilterOrderM, setAppliedFilterOrderM,
+      mvdrNumSensors, setMvdrNumSensors,
+      mvdrThetaS, setMvdrThetaS,
+      mvdrThetaI, setMvdrThetaI,
+      mvdrDiagLoad, setMvdrDiagLoad,
+      mvdrResults, setMvdrResults,
+      mvdrApplied, setMvdrApplied,
+      compareResults, setCompareResults,
+      compareApplied, setCompareApplied,
+      nMc, setNMc,
+      diagLoading, setDiagLoading,
+      useAicOrder, setUseAicOrder,
+      pipelineResults, setPipelineResults,
+      pipelineRunning, setPipelineRunning,
+      pipelineProgress, setPipelineProgress,
+      voiceNarrationEnabled, setVoiceNarrationEnabled,
+      parameterHint, setParameterHint,
     }}>
       {children}
     </SimulationContext.Provider>

@@ -29,6 +29,13 @@
   color: #0f172a;
 }
 
+.subtitle {
+  margin: -8px 0 0;
+  text-align: center;
+  font-size: 0.9rem;
+  color: #64748b;
+}
+
 @media (max-width: 768px) {
   .signalContainer {
     padding: 18px;
